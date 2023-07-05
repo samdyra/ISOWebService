@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from dotenv import dotenv_values
 from pymongo import MongoClient
-from routes import router as book_router
+from bookstore.routes import router as book_router
 
 app = FastAPI()
 config = dotenv_values(".env")
