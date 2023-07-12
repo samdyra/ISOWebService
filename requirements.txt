@@ -3,3 +3,4 @@ pydantic
 pymongo
 python-dotenv
 pytest
+mangum
