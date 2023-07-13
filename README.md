@@ -84,3 +84,33 @@ http://3.106.125.16/docs#/
 ```
 ## configure supervisor (https://www.youtube.com/watch?v=E5IhKYT7ecU&t=213s)
 
+configure
+```
+cd /etc/supervisor/conf.d/
+sudo vi hydrowebservice.conf
+```
+
+check health supervisor
+
+```
+sudo service supervisor status
+```
+
+refresh supervisor
+```
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl restart all
+```
+
+check health workers
+```
+sudo supervisorctl
+cat -n /var/log/supervisor/hydroapi_error.log
+```
+
+stop all worker
+
+```
+sudo supervisorctl stop all 
+```

@@ -4,3 +4,4 @@ pymongo
 python-dotenv
 pytest
 gunicorn
+uvicorn
