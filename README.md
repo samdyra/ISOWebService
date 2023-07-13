@@ -32,13 +32,13 @@ python -m pytest
 ## Contact Code Owner (Sam) for server configs
 
 ```
-chmod 400 hydroapi_key.pem
+chmod 400 hydrowebservice.pem
 ```
 
 Run on terminal
 
 ```
-ssh -i "hydroapi_key.pem" ubuntu@ec2-3-106-125-16.ap-southeast-2.compute.amazonaws.com
+ssh -i "hydrowebservice.pem" ubuntu@ec2-3-26-115-190.ap-southeast-2.compute.amazonaws.com
 ```
 
 install dependency "Already done"

@@ -2,4 +2,4 @@
 
 cd "$(dirname "$0")"
 source env/bin/activate
-uvicorn main:app --host=0.0.0.0 --workers=4 --port=8000
+uvicorn main:app --host=0.0.0.0 --workers=4
