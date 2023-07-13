@@ -1,4 +1,4 @@
-## Running the server
+## Running the server locally
 
 
 Install the required dependencies:
@@ -29,6 +29,8 @@ python -m pytest
 ```
 
 ## Run EC2 Instance (https://www.youtube.com/watch?v=SgSnz7kW-Ko)
+## Contact Code Owner (Sam) for server configs
+
 ```
 chmod 400 hydroapi_key.pem
 ```
@@ -58,6 +60,27 @@ sudo cat /etc/nginx/sites-enabled/fastapi_nginx
 ```
 
 restart nginx
+
 ```
 sudo service nginx restart
 ```
+
+install requirements.txt
+
+```
+pip3 install -r requirements.txt
+```
+
+run app on ec2 instance
+
+```
+python3 -m uvicorn main:app
+```
+
+public ip4 address
+
+```
+http://3.106.125.16/docs#/
+```
+## configure supervisor (https://www.youtube.com/watch?v=E5IhKYT7ecU&t=213s)
+
