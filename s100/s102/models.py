@@ -10,7 +10,7 @@ class S102Product(BaseModel):
         "desc": "Sample Description",
         "author": "Sample Author"
     })
-    hdf5Uri: str = Field(...)
+    hdf5Uri: str = Field()
     tiffFile: str  # Represented as a Base64-encoded string
 
 

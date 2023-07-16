@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Body, Request, status
 from fastapi.encoders import jsonable_encoder
-from s102.models import S102Product
+from s100.s102.models import S102Product
 from config.firebase import storage
 from h5py import File
 import io
