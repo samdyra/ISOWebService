@@ -21,7 +21,6 @@ class S102Product(BaseModel):
                     "desc": "Sample Description",
                     "author": "Sample Author"
                 },
-                "hdf5Uri": "https://s3.amazonaws.com/...",
             }
         }
 
@@ -37,6 +36,5 @@ class S102ProductUpdate(BaseModel):
                     "desc": "Sample Description",
                     "author": "Sample Author"
                 },
-                "hdf5Uri": "https://s3.amazonaws.com/...",
             }
         }

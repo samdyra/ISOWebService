@@ -5,3 +5,5 @@ python-dotenv
 pytest
 gunicorn
 uvicorn
+pyrebase
+h5py
