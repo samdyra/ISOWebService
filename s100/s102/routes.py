@@ -3,6 +3,7 @@ from fastapi.encoders import jsonable_encoder
 from s100.s102.models import S102Product
 from config.firebase import storage
 from h5py import File
+from s100.helpers.base64_tiff import sample_base64_text
 import io
 
 router = APIRouter()
@@ -23,6 +24,7 @@ def create_s012(request: Request, input: S102Product = Body(...)):
 
     input = jsonable_encoder(input)
     input["hdf5Uri"] = url
+    input["tiffFile"] = sample_base64_text
 
     new_s102 = request.app.database["s102"].insert_one(input)
     created_s102 = request.app.database["s102"].find_one(
