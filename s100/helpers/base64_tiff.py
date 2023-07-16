@@ -25,6 +25,6 @@ def convert_base64_to_temp_tiff(base64_string):
     return temp_file_path
 
 temp_tiff_file_path = convert_base64_to_temp_tiff(base64text)
-print(temp_tiff_file_path)
+# print(temp_tiff_file_path)
 
 # base64_string = create_base64_from_tiff(tiff_file_path)

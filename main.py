@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from config.database import startup_db_client, shutdown_db_client
 from bookstore.routes import router as book_router
-from s102.routes import router as s102_router
+from s100.s102.routes import router as s102_router
 from dotenv import dotenv_values
 
 config = dotenv_values(".env")

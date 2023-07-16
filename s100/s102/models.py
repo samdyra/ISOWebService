@@ -11,6 +11,8 @@ class S102Product(BaseModel):
         "author": "Sample Author"
     })
     hdf5Uri: str = Field(...)
+    tiffFile: str  # Represented as a Base64-encoded string
+
 
     class Config:
         allow_population_by_field_name = True
