@@ -1,0 +1,3 @@
+waterLevelHeight	Water level height	meters	-9999.	H5T_FLOAT	-99.99	99.99	closedInterval
+waterLevelTrend	Water level trend		0	H5T_ENUM			
+waterLevelTime	Water level time	DateTime		H5T_C_S1	19000101T000000Z	21500101T000000Z	closedInterval

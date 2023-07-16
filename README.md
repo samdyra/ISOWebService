@@ -28,17 +28,27 @@ Execute the tests:
 python -m pytest
 ```
 
+## create virtual environtment
+
+```
+python3 -m venv env
+source env/bin/activate
+pip3 install -r requirements.txt
+uvicorn main:app --reload
+```
+
 ## Run EC2 Instance (https://www.youtube.com/watch?v=SgSnz7kW-Ko)
 ## Contact Code Owner (Sam) for server configs
 
 ```
-chmod 400 hydrowebservice.pem
+chmod 400 hydroservice.pem
 ```
 
 Run on terminal
 
 ```
-ssh -i "hydrowebservice.pem" ubuntu@ec2-3-26-115-190.ap-southeast-2.compute.amazonaws.com
+ssh -i "hydroservice.pem" ubuntu@ec2-54-153-240-138.ap-southeast-2.compute.amazonaws.com
+
 ```
 
 install dependency "Already done"
@@ -74,13 +84,14 @@ pip3 install -r requirements.txt
 run app on ec2 instance
 
 ```
-python3 -m uvicorn main:app
+cd ISOWebService
+./start.sh
 ```
 
 public ip4 address
 
 ```
-http://3.106.125.16/docs#/
+http://ec2-54-153-240-138.ap-southeast-2.compute.amazonaws.com:8000/docs
 ```
 ## configure supervisor (https://www.youtube.com/watch?v=E5IhKYT7ecU&t=213s)
 
