@@ -15,6 +15,7 @@ class S102Product(BaseModel):
         'issueTime': '1237',
         'issueDate': '20230409',
         'metadata': '102ID00_ITBS100PROJECT.xml'
+
     })
     format_data: Dict[str, int] = Field(..., example={
         'data_coding_format_dt': 2,
@@ -49,6 +50,19 @@ class S102Product(BaseModel):
                 'tiffFile': 'base64 text'
             }
         }
+
+class S102ProductResponse(BaseModel):
+    id: str = Field(default_factory=uuid.uuid4, alias="_id")
+    hdf5Uri: str = Field(..., example="https://s3.amazonaws.com/s100-hdf5/102ID00_ITBS100PROJECT.h5")
+
+    class Config:
+        allow_population_by_field_name = True
+        schema_extra = {
+            "example": {
+                'tiffFile': 'base64 text'
+            }
+        }
+
 
 class S102ProductUpdate(BaseModel):
     metadata: Optional[Dict[str, str]]
