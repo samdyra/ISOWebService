@@ -5,12 +5,24 @@ sample_base64_text = "SUkqAAgAAAAQAAABAwABAAAAMwAAAAEBAwABAAAAFwAAAAIBAwACAAAAIA
 
 output_file_path = "hello_world.tiff"
 
-tiff_file_path = "hello_world.tiff"
+tiff_file_path = "bathy.tiff"
 
 def create_base64_from_tiff(file_path):
     with open(file_path, "rb") as file:
         tiff_bytes = file.read()
         base64_data = base64.b64encode(tiff_bytes).decode("utf-8")
+
+    # Construct the content of the Python file
+    python_file_content = f'''
+import base64
+
+sample = "{base64_data}"
+'''
+
+    # Write the Python file
+    with open("tiff.py", "w") as output_file:
+        output_file.write(python_file_content)
+
     return base64_data
 
 def convert_base64_to_temp_tiff(base64_string):
@@ -24,7 +36,8 @@ def convert_base64_to_temp_tiff(base64_string):
     
     return temp_file_path
 
-temp_tiff_file_path = convert_base64_to_temp_tiff(sample_base64_text)
+# temp_tiff_file_path = convert_base64_to_temp_tiff(sample_base64_text)
 # print(temp_tiff_file_path)
 
 # base64_string = create_base64_from_tiff(tiff_file_path)
+# print(base64_string)

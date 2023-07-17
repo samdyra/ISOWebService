@@ -93,7 +93,6 @@ def create_s012(request: Request, input: S102Product = Body(...)):
         Group_F = f['/Group_F']
 
         # Initiate root attribute
-        f.attrs.create('extentTypeCode', data = True, dtype='?')  
         f.attrs['productSpecification'] = "INT.IHO.S-102.2.1"
         f.attrs['eastBoundLongitude'] = maxx
         f.attrs['westBoundLongitude'] = minx
@@ -203,9 +202,9 @@ def create_s012(request: Request, input: S102Product = Body(...)):
     hdf5File = bio.getvalue()
 
     # upload hdf5 file to firebase storage
-    path = storage.child("/s102/hdf5/file.hdf5")
+    path = storage.child("/s102/hdf5/file.h5")
     path.put(hdf5File)
-    url = storage.child("s102/hdf5/file.hdf5").get_url(None)
+    url = storage.child("s102/hdf5/file.h5").get_url(None)
 
     # use url from firebase storage as hdf5Uri in response
     input = jsonable_encoder(input)
