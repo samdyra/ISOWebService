@@ -18,11 +18,11 @@ class S102Product(BaseModel):
 
     })
     format_data: Dict[str, int] = Field(..., example={
-        'data_coding_format_dt': 2,
-        'vertical_datum_dt': 3,
-        'common_point_rule_dt': 1,
-        'interpolation_type_dt': 1,
-        'sequencing_rule_type_dt': 1,
+        'data_coding_format_dt_type': 2,
+        'vertical_datum_dt_type': 3,
+        'common_point_rule_dt_type': 1,
+        'interpolation_type_dt_type': 1,
+        'sequencing_rule_type_dt_type': 1,
     })
     tiffFile: str = Field(..., example=sample_base64_text)
 
@@ -41,11 +41,11 @@ class S102Product(BaseModel):
                     'metadata': '102ID00_ITBS100PROJECT.xml'
                 },
                 "format_data": {
-                  'data_coding_format_dt': 2,
-                  'vertical_datum_dt': 3,
-                  'common_point_rule_dt': 1,
-                  'interpolation_type_dt': 1,
-                  'sequencing_rule_type_dt': 1,
+                  'data_coding_format_dt_type': 2,
+                  'vertical_datum_dt_type': 3,
+                  'common_point_rule_dt_type': 1,
+                  'interpolation_type_dt_type': 1,
+                  'sequencing_rule_type_dt_type': 1,
                 },
                 'tiffFile': 'base64 text'
             }
