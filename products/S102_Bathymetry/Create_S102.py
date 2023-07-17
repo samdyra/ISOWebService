@@ -25,7 +25,8 @@ metadata = {
     'horizontalDatumValue': 4326,
     'issueTime': '1237',
     'issueDate': '20230409',
-    'metadata': '102ID00_ITBS100PROJECT.xml'}
+    'metadata': '102ID00_ITBS100PROJECT.xml'
+    }
 
 # fetching depth and uncert. values from dataset
 depth_band = dataset.GetRasterBand(1)
@@ -149,7 +150,7 @@ data_coding_format_dt = h5py.enum_dtype(DATA_CODING_FORMAT, basetype='i4')
 vertical_datum_dt = h5py.enum_dtype(VERTICAL_DATUM, basetype='i4')
 common_point_rule_dt = h5py.enum_dtype(COMMON_POINT_RULE, basetype='i4')
 interpolation_type_dt = h5py.enum_dtype(INTERPOLATION_TYPE, basetype='i4')
-gm_dt = h5py.enum_dtype(GRIDDING_METHOD, basetype='i4')
+# gm_dt = h5py.enum_dtype(GRIDDING_METHOD, basetype='i4')
 sequencing_rule_type_dt = h5py.enum_dtype(SEQUENCING_RULE_TYPE, basetype='i4')
 
 with h5py.File('102ID00ITBS100PRJCT.h5', mode= 'w') as f:

@@ -16,7 +16,7 @@ def create_base64_from_tiff(file_path):
 def convert_base64_to_temp_tiff(base64_string):
     tiff_bytes = base64.b64decode(base64_string)
     
-    with tempfile.NamedTemporaryFile(suffix=".tif", delete=True) as temp_file:
+    with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as temp_file:
         temp_file_path = temp_file.name
         
         with open(temp_file_path, "wb") as file:

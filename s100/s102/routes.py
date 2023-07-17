@@ -3,13 +3,19 @@ from fastapi.encoders import jsonable_encoder
 from s100.s102.models import S102Product
 from config.firebase import storage
 from h5py import File
-from s100.helpers.base64_tiff import sample_base64_text
+from s100.helpers.base64_tiff import convert_base64_to_temp_tiff 
 import io
+from osgeo import gdal, osr
+
 
 router = APIRouter()
 
 @router.post("/", response_description="Create a new s102 hdf5 file", status_code=status.HTTP_201_CREATED, response_model=S102Product)
 def create_s012(request: Request, input: S102Product = Body(...)):
+    temp_tiff = convert_base64_to_temp_tiff(input.tiffFile)
+
+    dataset = gdal.Open(temp_tiff)
+
     bio = io.BytesIO()
     with File(bio, 'w') as f:
         f['array'] = [1, 2, 3]
@@ -24,7 +30,6 @@ def create_s012(request: Request, input: S102Product = Body(...)):
 
     input = jsonable_encoder(input)
     input["hdf5Uri"] = url
-    input["tiffFile"] = sample_base64_text
 
     new_s102 = request.app.database["s102"].insert_one(input)
     created_s102 = request.app.database["s102"].find_one(
