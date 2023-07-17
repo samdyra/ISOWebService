@@ -9,8 +9,6 @@ import io
 from osgeo import gdal, osr
 import numpy
 
-
-
 router = APIRouter()
 
 @router.post("/", response_description="Create a new s102 hdf5 file", status_code=status.HTTP_201_CREATED, response_model=S102ProductResponse)
@@ -18,7 +16,13 @@ def create_s012(request: Request, input: S102Product = Body(...)):
     # get input from request body
     tiffFile = input.tiffFile
     metadata = input.metadata
+    format_data = input.format_data
 
+    data_coding_format_dt_type =  format_data['data_coding_format_dt_type']
+    vertical_datum_dt_type = format_data['vertical_datum_dt_type']
+    common_point_rule_dt_type = format_data['common_point_rule_dt_type']
+    interpolation_type_dt_type = format_data['interpolation_type_dt_type']
+    sequencing_rule_type_dt_type = format_data['sequencing_rule_type_dt_type']
 
     # convert base64 tiff to temp tiff
     temp_tiff = convert_base64_to_temp_tiff(tiffFile)
@@ -80,7 +84,7 @@ def create_s012(request: Request, input: S102Product = Body(...)):
     # create hdf5 instance in memory
     bio = io.BytesIO()
     with File(bio, 'w') as f:
-        # initiate dataset structureforigi
+        # initiate dataset structure
         bathy = f.create_group('/BathymetryCoverage')
         bathy_01 = f.create_group('/BathymetryCoverage/BathymetryCoverage.01')
         bathy_group_object = f.create_group('/BathymetryCoverage/BathymetryCoverage.01/Group_001')
@@ -95,7 +99,7 @@ def create_s012(request: Request, input: S102Product = Body(...)):
         f.attrs['westBoundLongitude'] = minx
         f.attrs['southBoundLatitude'] = miny
         f.attrs['northBoundLatitude'] = maxy
-        f.attrs.create('verticalDatum',data =  3, dtype = vertical_datum_dt)
+        f.attrs.create('verticalDatum',data =  vertical_datum_dt_type, dtype = vertical_datum_dt)
 
         # these names are taken from the S100/S102 attribute names
         if "horizontalDatumReference" in metadata:
@@ -130,14 +134,14 @@ def create_s012(request: Request, input: S102Product = Body(...)):
         _axis_names = bathy.create_dataset('axisNames', data=axes)
         
         bathy.attrs['verticalUncertainty'] = -1.0
-        bathy.attrs.create('sequencingRule.type',data =  1, dtype = sequencing_rule_type_dt)
+        bathy.attrs.create('sequencingRule.type',data =  sequencing_rule_type_dt_type, dtype = sequencing_rule_type_dt)
         bathy.attrs['numInstances'] = 1
         bathy.attrs['horizontalPositionUncertainty'] = -1.0
         bathy.attrs['dimension'] = 2
         bathy.attrs['sequencingRule.scanDirection'] = ", ".join(axes)
-        bathy.attrs.create('interpolationType', data = 1, dtype= interpolation_type_dt)
-        bathy.attrs.create('dataCodingFormat', data = 2, dtype = data_coding_format_dt)
-        bathy.attrs.create('commonPointRule', data = 1, dtype= common_point_rule_dt)
+        bathy.attrs.create('interpolationType', data = interpolation_type_dt_type, dtype= interpolation_type_dt)
+        bathy.attrs.create('dataCodingFormat', data = data_coding_format_dt_type, dtype = data_coding_format_dt)
+        bathy.attrs.create('commonPointRule', data = common_point_rule_dt_type, dtype= common_point_rule_dt)
 
         # initiate BathCov.nn attribute
         bathy_01.attrs['eastBoundLongitude'] = maxx
@@ -167,8 +171,8 @@ def create_s012(request: Request, input: S102Product = Body(...)):
         
         except ValueError:
             uncertainty_max = uncertainty_min = nodata_value
-        # ValueError caused by uncertainty array where (all values == nodata)
-            
+        
+        # ValueError caused by uncertainty array where (all values == nodata)    
         bathy_01.attrs['numPointsLatitudinal'] = rows
         bathy_01.attrs['numPointsLongitudinal'] = cols
         bathy_01.attrs['startSequence'] = "0,0"
@@ -206,8 +210,6 @@ def create_s012(request: Request, input: S102Product = Body(...)):
     # use url from firebase storage as hdf5Uri in response
     input = jsonable_encoder(input)
     input["hdf5Uri"] = url
-
-    print(input)
 
     # insert new s102 to mongodb
     new_s102 = request.app.database["s102"].insert_one({
