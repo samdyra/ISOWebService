@@ -2,7 +2,7 @@ import uuid
 from typing import Optional, Union
 from pydantic import BaseModel, Field
 from typing import Dict
-from s100.helpers.base64_tiff import sample_base64_text
+from s100.utils.base64_tiff import sample_base64_text
 
 class S102Product(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
@@ -39,6 +39,14 @@ class S102Product(BaseModel):
                     'issueDate': '20230409',
                     'metadata': '102ID00_ITBS100PROJECT.xml'
                 },
+                "format_data": {
+                  'data_coding_format_dt': 2,
+                  'vertical_datum_dt': 3,
+                  'common_point_rule_dt': 1,
+                  'interpolation_type_dt': 1,
+                  'sequencing_rule_type_dt': 1,
+                },
+                'tiffFile': 'base64 text'
             }
         }
 
