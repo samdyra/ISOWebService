@@ -2,8 +2,8 @@ import uuid
 from typing import Optional, Union
 from pydantic import BaseModel, Field
 from typing import Dict
-from s100.utils.base64_tiff import sample_base64_text
 from s100.utils.tiff import sample
+# from s100.utils.base64_tiff import sample_base64_text
 
 class S102Product(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
@@ -55,6 +55,7 @@ class S102Product(BaseModel):
 class S102ProductResponse(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
     hdf5Uri: str = Field(..., example="https://s3.amazonaws.com/s100-hdf5/102ID00_ITBS100PROJECT.h5")
+    geojsonUri: str = Field(..., example="https://s3.amazonaws.com/s100-geojson/102ID00_ITBS100PROJECT.geojson")
 
     class Config:
         allow_population_by_field_name = True
