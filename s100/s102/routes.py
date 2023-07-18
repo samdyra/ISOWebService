@@ -2,7 +2,7 @@ from fastapi import APIRouter, Body, Request, status
 from fastapi.encoders import jsonable_encoder
 from s100.s102.models import S102ProductResponse, S102Product
 from config.firebase import storage
-from h5py import File, enum_dtype, special_dtype
+from h5py import enum_dtype
 from s100.utils.base64_tiff import convert_base64_to_temp_tiff 
 from s100.constants.metadata_dict import COMMON_POINT_RULE, DATA_CODING_FORMAT, INTERPOLATION_TYPE, SEQUENCING_RULE_TYPE, VERTICAL_DATUM
 import io
@@ -39,8 +39,6 @@ def create_s012(request: Request, input: S102Product = Body(...)):
 
     depth_grid = numpy.flipud(depth_grid)
     uncert_grid = numpy.flipud(uncert_grid)
-
-    nodata_value = 1000000
 
     # calculate grid origin and res.
     # get six coefficients affine transformation

@@ -28,8 +28,6 @@ def tiff_hdf5_s102(bio, bio_param: Dict[str, Union[str, int]]):
   rows: int = bio_param['rows']
   cols: int = bio_param['cols']
   
-
-
   with File(bio, 'w') as f:
         # initiate dataset structure
         bathy = f.create_group('/BathymetryCoverage')
