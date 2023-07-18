@@ -5,7 +5,7 @@ sample_base64_text = "SUkqAAgAAAAQAAABAwABAAAAMwAAAAEBAwABAAAAFwAAAAIBAwACAAAAIA
 
 output_file_path = "hello_world.tiff"
 
-tiff_file_path = "bathy.tiff"
+tiff_file_path = "bathysmall.tif"
 
 def create_base64_from_tiff(file_path):
     with open(file_path, "rb") as file:

@@ -8,6 +8,7 @@ from s100.constants.metadata_dict import COMMON_POINT_RULE, DATA_CODING_FORMAT, 
 import io
 from osgeo import gdal, osr
 import numpy
+from s100.utils.hfd5_geojson import convert_hdf5_to_json
 
 router = APIRouter()
 
@@ -39,8 +40,7 @@ def create_s012(request: Request, input: S102Product = Body(...)):
     uncert_grid = numpy.flipud(uncert_grid)
 
     nodata_value = 1000000
-    _depth_nodata_value = 1000000
-
+    
     # calculate grid origin and res.
     # get six coefficients affine transformation
     ulx, dxx, _dxy, uly, _dyx, dyy = dataset.GetGeoTransform()
@@ -130,7 +130,7 @@ def create_s012(request: Request, input: S102Product = Body(...)):
             # ["Latitude", "Longitude"]  # row major instead of
             axes = ["Longitude", "Latitude"]
 
-        _axis_names = bathy.create_dataset('axisNames', data=axes)
+        bathy.create_dataset('axisNames', data=axes)
         
         bathy.attrs['verticalUncertainty'] = -1.0
         bathy.attrs.create('sequencingRule.type',data =  sequencing_rule_type_dt_type, dtype = sequencing_rule_type_dt)
@@ -198,6 +198,9 @@ def create_s012(request: Request, input: S102Product = Body(...)):
         
         fcode = Group_F.create_dataset('featureCode', shape= (1,), dtype = dt_dtype)
         fcode[0] = ('BathymetryCoverage')
+    
+    #convert hdf5 to geojson    
+    convert_hdf5_to_json(bio)
 
     hdf5File = bio.getvalue()
 
