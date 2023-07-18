@@ -8,9 +8,9 @@ from s100.constants.metadata_dict import COMMON_POINT_RULE, DATA_CODING_FORMAT, 
 import io
 from osgeo import gdal, osr
 import numpy
-from s100.utils.hfd5_geojson import convert_hdf5_to_json
 from s100.utils.tiff_hdf5_s102 import tiff_hdf5_s102 as convert_tiff_to_hdf5_s102
 from s100.utils.tiff_geojson import convert_tiff_to_geojson
+from s100.utils.global_helper import generate_random_filename
 
 router = APIRouter()
 
@@ -61,8 +61,9 @@ def create_s012(request: Request, input: S102Product = Body(...)):
             if osr.SpatialReference(dataset.GetProjection()).GetAttrValue("GEOGCS") == 'WGS 84':
                 metadata["horizontalDatumValue"] = 4326
 
-    res_x, res_y = metadata["res"]
+    file_name = generate_random_filename(metadata['file_name'])
 
+    res_x, res_y = metadata["res"]
     rows, cols = depth_grid.shape
     corner_x, corner_y = metadata['origin']
 
@@ -106,9 +107,6 @@ def create_s012(request: Request, input: S102Product = Body(...)):
         'rows': rows,
         'cols': cols
     })
-    
-    #convert hdf5 to geojson    
-    convert_hdf5_to_json(bio)
 
     # convert tiff to geojson
     geojson_result = convert_tiff_to_geojson(depth_grid_init, corner_x, corner_y, res_x, res_y)
@@ -116,14 +114,14 @@ def create_s012(request: Request, input: S102Product = Body(...)):
     hdf5File = bio.getvalue()
 
     # upload hdf5 file to firebase storage
-    path = storage.child("/s102/hdf5/file.h5")
+    path = storage.child(f"/s102/hdf5/{file_name}.h5")
     path.put(hdf5File)
-    url = storage.child("s102/hdf5/file.h5").get_url(None)
+    url = storage.child(f"s102/hdf5/{file_name}.h5").get_url(None)
 
     # upload geojson file to firebase storage
-    path_geojson = storage.child("/s102/geojson/file2.geojson")
+    path_geojson = storage.child(f"/s102/geojson/{file_name}.geojson")
     path_geojson.put(geojson_result)
-    url_geojson = storage.child("s102/geojson/file2.geojson").get_url(None)
+    url_geojson = storage.child(f"s102/geojson/{file_name}.geojson").get_url(None)
 
     # use url from firebase storage as hdf5Uri in response
     input = jsonable_encoder(input)

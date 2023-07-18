@@ -8,6 +8,7 @@ from s100.utils.tiff import sample
 class S102Product(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
     metadata: Dict[str, Union[str, bool, int]] = Field(..., example={
+        'file_name': '102ID00_ITBS100PROJECT',
         'geographicIdentifier': 'Selat Alas',
         'epoch': 'G1762',
         'extent_type_code': True,
