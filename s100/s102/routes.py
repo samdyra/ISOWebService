@@ -10,6 +10,7 @@ from osgeo import gdal, osr
 import numpy
 from s100.utils.hfd5_geojson import convert_hdf5_to_json
 from s100.utils.tiff_hdf5_s102 import tiff_hdf5_s102 as convert_tiff_to_hdf5_s102
+from s100.utils.tiff_geojson import convert_tiff_to_geojson
 
 router = APIRouter()
 
@@ -32,12 +33,12 @@ def create_s012(request: Request, input: S102Product = Body(...)):
 
     # fetching depth and uncert. values from dataset
     depth_band = dataset.GetRasterBand(1)
-    depth_grid = depth_band.ReadAsArray()
+    depth_grid_init = depth_band.ReadAsArray()
 
     uncert_band = dataset.GetRasterBand(2)
     uncert_grid = uncert_band.ReadAsArray()
 
-    depth_grid = numpy.flipud(depth_grid)
+    depth_grid = numpy.flipud(depth_grid_init)
     uncert_grid = numpy.flipud(uncert_grid)
 
     # calculate grid origin and res.
@@ -109,6 +110,9 @@ def create_s012(request: Request, input: S102Product = Body(...)):
     #convert hdf5 to geojson    
     convert_hdf5_to_json(bio)
 
+    # convert tiff to geojson
+    geojson_result = convert_tiff_to_geojson(depth_grid_init, corner_x, corner_y, res_x, res_y)
+
     hdf5File = bio.getvalue()
 
     # upload hdf5 file to firebase storage
@@ -116,14 +120,21 @@ def create_s012(request: Request, input: S102Product = Body(...)):
     path.put(hdf5File)
     url = storage.child("s102/hdf5/file.h5").get_url(None)
 
+    # upload geojson file to firebase storage
+    path_geojson = storage.child("/s102/geojson/file2.geojson")
+    path_geojson.put(geojson_result)
+    url_geojson = storage.child("s102/geojson/file2.geojson").get_url(None)
+
     # use url from firebase storage as hdf5Uri in response
     input = jsonable_encoder(input)
     input["hdf5Uri"] = url
+    input["geojsonUri"] = url_geojson
 
     # insert new s102 to mongodb
     new_s102 = request.app.database["s102"].insert_one({
         "_id": input["_id"],
-        "hdf5Uri": input["hdf5Uri"]
+        "hdf5Uri": input["hdf5Uri"],
+        "geojsonUri": input["geojsonUri"]
     })
 
     created_s102 = request.app.database["s102"].find_one(

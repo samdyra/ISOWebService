@@ -7,3 +7,4 @@ gunicorn
 uvicorn
 pyrebase
 h5py
+geojson
