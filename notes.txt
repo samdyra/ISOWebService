@@ -1,5 +1,6 @@
 TECH DEBT:
 1. Temporary File should be explicitely deleted
-2. firebase storage file naming should be dynamic
-3. uuid auto generate, FE shouldnt post id
-4. file output cleanup
+2. file output cleanup
+3. rate limiter
+4. CORS identifier
+5. security

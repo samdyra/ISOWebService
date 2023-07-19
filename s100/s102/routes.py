@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Body, Request, status
+from typing import List
+from fastapi import APIRouter, Body, Request, status, HTTPException
 from fastapi.encoders import jsonable_encoder
 from s100.s102.models import S102ProductResponse, S102Product
 from config.firebase import storage
@@ -147,3 +148,12 @@ def create_s012(request: Request, input: S102Product = Body(...)):
     )
 
     return created_s102
+
+@router.get("/{user_id}", response_description="Get S102 user data", response_model=List[S102ProductResponse])
+def list_user_s102_data(user_id: str, request: Request):
+    # s102_data := list(request.app.database["s102"].find({"user_id": user_id}, limit=100))
+    if (s102_data := list(request.app.database["s102"].find({"user_id": user_id}, limit=100))) is not None:
+        return s102_data
+    
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"user with ID {user_id} dont have any data")
+    
