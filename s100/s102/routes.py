@@ -11,6 +11,8 @@ import numpy
 from s100.utils.tiff_hdf5_s102 import tiff_hdf5_s102 as convert_tiff_to_hdf5_s102
 from s100.utils.tiff_geojson import convert_tiff_to_geojson
 from s100.utils.global_helper import generate_random_filename
+from uuid import uuid4
+
 
 router = APIRouter()
 
@@ -127,12 +129,17 @@ def create_s012(request: Request, input: S102Product = Body(...)):
     input = jsonable_encoder(input)
     input["hdf5Uri"] = url
     input["geojsonUri"] = url_geojson
+    
+    uid4 = uuid4()
+    uuid_str = str(uid4)
 
     # insert new s102 to mongodb
     new_s102 = request.app.database["s102"].insert_one({
-        "_id": input["_id"],
+        "_id": uuid_str,
         "hdf5Uri": input["hdf5Uri"],
-        "geojsonUri": input["geojsonUri"]
+        "geojsonUri": input["geojsonUri"],
+        "file_name": metadata["file_name"],
+        "user_id": input["user_id"]
     })
 
     created_s102 = request.app.database["s102"].find_one(
