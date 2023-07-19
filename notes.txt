@@ -1,6 +1,13 @@
+URGENT:
+1. Delete firebase storage by frontend
+
 TECH DEBT:
 1. Temporary File should be explicitely deleted
 2. file output cleanup
 3. rate limiter
 4. CORS identifier
 5. security
+6. explicitely define error state in post request
+7. specify import modules, only import what is needed
+8. research how to install gdal on venv
+9. create dedicated firebase

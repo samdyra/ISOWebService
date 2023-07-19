@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Body, Request, status, HTTPException
+from fastapi import APIRouter, Body, Request, status, HTTPException, Response
 from fastapi.encoders import jsonable_encoder
 from s100.s102.models import S102ProductResponse, S102Product
 from config.firebase import storage
@@ -140,7 +140,9 @@ def create_s012(request: Request, input: S102Product = Body(...)):
         "hdf5Uri": input["hdf5Uri"],
         "geojsonUri": input["geojsonUri"],
         "file_name": metadata["file_name"],
-        "user_id": input["user_id"]
+        "user_id": input["user_id"],
+        "hdf5_file_name_location_path": f"/s102/hdf5/{file_name}.h5",
+        "geojson_file_name_location_path": f"/s102/geojson/{file_name}.geojson"
     })
 
     created_s102 = request.app.database["s102"].find_one(
@@ -151,9 +153,21 @@ def create_s012(request: Request, input: S102Product = Body(...)):
 
 @router.get("/{user_id}", response_description="Get S102 user data", response_model=List[S102ProductResponse])
 def list_user_s102_data(user_id: str, request: Request):
-    # s102_data := list(request.app.database["s102"].find({"user_id": user_id}, limit=100))
     if (s102_data := list(request.app.database["s102"].find({"user_id": user_id}, limit=100))) is not None:
         return s102_data
     
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"user with ID {user_id} dont have any data")
+
+@router.delete("/{_id}", response_description="Delete A S102 data")
+def delete_s102_data(_id: str, request: Request, response: Response):
+    # TODO: delete hdf5 and geojson file from firebase storage by Frontend
+
+    delete_result = request.app.database["s102"].delete_one({"_id": _id})
+
+    if delete_result.deleted_count == 1:
+        response.status_code = status.HTTP_204_NO_CONTENT
+        response.message = "S102 data deleted"
+        return response
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"S102 data with ID {_id} not found")
     

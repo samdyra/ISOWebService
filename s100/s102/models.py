@@ -58,6 +58,8 @@ class S102ProductResponse(BaseModel):
     hdf5Uri: str = Field(..., example="https://s3.amazonaws.com/s100-hdf5/102ID00_ITBS100PROJECT.h5")
     geojsonUri: str = Field(..., example="https://s3.amazonaws.com/s100-geojson/102ID00_ITBS100PROJECT.geojson")
     file_name: str = Field(..., example="102ID00_ITBS100PROJECT")
+    hdf5_file_name_location_path: str = Field(..., example="/s102/hdf5/102ID00_ITBS100PROJECT.h5")
+    geojson_file_name_location_path: str = Field(..., example="/s102/geojson/102ID00_ITBS100PROJECT.geojson")
     user_id: str = Field(..., example="60a7b1b9d6b9a4a7f0a3b3a0")
 
     class Config:
