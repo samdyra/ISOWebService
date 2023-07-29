@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from config.database import startup_db_client, shutdown_db_client
 from bookstore.routes import router as book_router
 from s100.s102.routes import router as s102_router
+from s100.s111.routes import router as s111_router
+
 from dotenv import dotenv_values
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -32,4 +34,6 @@ async def shutdown():
 
 app.include_router(book_router, tags=["books"], prefix="/book")
 app.include_router(s102_router, tags=["s102"], prefix="/s102")
+app.include_router(s111_router, tags=["s111"], prefix="/s111")
+
 
