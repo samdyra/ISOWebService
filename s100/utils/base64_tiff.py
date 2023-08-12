@@ -7,6 +7,7 @@ output_file_path = "hello_world.tiff"
 
 tiff_file_path = "bathysmall.tif"
 
+
 def create_base64_from_tiff(file_path):
     with open(file_path, "rb") as file:
         tiff_bytes = file.read()
@@ -20,21 +21,27 @@ sample = "{base64_data}"
 '''
 
     # Write the Python file
-    with open("tiff.py", "w") as output_file:
+    with open("dataset_3.py", "w") as output_file:
         output_file.write(python_file_content)
 
     return base64_data
 
+
+# base64_string = create_base64_from_tiff("dataset_3.tif")
+# print(base64_string)
+
+
 def convert_base64_to_temp_tiff(base64_string):
     tiff_bytes = base64.b64decode(base64_string)
-    
+
     with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as temp_file:
         temp_file_path = temp_file.name
-        
+
         with open(temp_file_path, "wb") as file:
             file.write(tiff_bytes)
-    
+
     return temp_file_path
+
 
 # temp_tiff_file_path = convert_base64_to_temp_tiff(sample_base64_text)
 # print(temp_tiff_file_path)
