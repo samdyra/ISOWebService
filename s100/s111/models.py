@@ -1,14 +1,17 @@
 from typing import Optional, Union
 from pydantic import BaseModel, Field
 from typing import Dict
-from s100.utils.tiff import sample
+from s100.utils.dataset_1 import sample as dataset_1
+from s100.utils.dataset_2 import sample as dataset_2
+from s100.utils.dataset_3 import sample as dataset_3
+
 # from s100.utils.base64_tiff import sample_base64_text
 
 
 class S111Product(BaseModel):
     user_id: str = Field(..., example="60a7b1b9d6b9a4a7f0a3b3a0")
     metadata: Dict[str, Union[str, bool, int]] = Field(..., example={
-        'file_name': '102ID00_ITBS100PROJECT',
+        'file_name': 'TESTING S111',
         'geographicIdentifier': 'Selat Alas',
         'epoch': 'G1762',
         'extent_type_code': True,
@@ -27,9 +30,9 @@ class S111Product(BaseModel):
         'sequencing_rule_type_dt_type': 1,
     })
 
-    dataset_1: str = Field(..., examples=sample)
-    dataset_2: str = Field(..., examples=sample)
-    dataset_3: str = Field(..., examples=sample)
+    dataset_1: str = Field(..., example=dataset_1)
+    dataset_2: str = Field(..., example=dataset_2)
+    dataset_3: str = Field(..., example=dataset_3)
 
     class Config:
         allow_population_by_field_name = True
