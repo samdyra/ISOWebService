@@ -8,3 +8,5 @@ uvicorn
 pyrebase
 h5py
 geojson
+xarray
+rioxarray
