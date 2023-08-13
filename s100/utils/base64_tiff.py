@@ -21,14 +21,14 @@ sample = "{base64_data}"
 '''
 
     # Write the Python file
-    with open("dataset_3.py", "w") as output_file:
+    with open("ncdfs111.py", "w") as output_file:
         output_file.write(python_file_content)
 
     return base64_data
 
 
-# base64_string = create_base64_from_tiff("dataset_3.tif")
-# print(base64_string)
+base64_string = create_base64_from_tiff("sample/SelatLombok_111.nc")
+print(base64_string)
 
 
 def convert_base64_to_temp_tiff(base64_string):
