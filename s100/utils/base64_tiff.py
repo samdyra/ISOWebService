@@ -44,7 +44,7 @@ def convert_base64_to_temp_tiff(base64_string):
 
 
 # temp_tiff_file_path = convert_base64_to_temp_tiff(sample_base64_text)
-# print(temp_tiff_file_path)
+# print(temp_tiff_file_path)xs
 
 # base64_string = create_base64_from_tiff(tiff_file_path)
 # print(base64_string)
