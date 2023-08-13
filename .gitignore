@@ -4,4 +4,4 @@ __pycache__
 *.pem
 env
 GDAL-3.7.1.1
-/s100/utils/sample/*
+

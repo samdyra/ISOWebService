@@ -27,8 +27,8 @@ sample = "{base64_data}"
     return base64_data
 
 
-base64_string = create_base64_from_tiff("sample/SelatLombok_111.nc")
-print(base64_string)
+# base64_string = create_base64_from_tiff("sample/SelatLombok_111.nc")
+# print(base64_string)
 
 
 def convert_base64_to_temp_tiff(base64_string):
