@@ -3,6 +3,8 @@ from config.database import startup_db_client, shutdown_db_client
 from bookstore.routes import router as book_router
 from s100.s102.routes import router as s102_router
 from s100.s111.routes import router as s111_router
+from s100.s104.routes import router as s104_router
+
 
 from dotenv import dotenv_values
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,9 +26,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.on_event("startup")
 async def startup():
     startup_db_client(app, config)
+
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -34,6 +38,5 @@ async def shutdown():
 
 app.include_router(book_router, tags=["books"], prefix="/book")
 app.include_router(s102_router, tags=["s102"], prefix="/s102")
+app.include_router(s104_router, tags=["s104"], prefix="/s104")
 app.include_router(s111_router, tags=["s111"], prefix="/s111")
-
-

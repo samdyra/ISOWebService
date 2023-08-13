@@ -1,9 +1,9 @@
 from typing import Optional, Union
 from pydantic import BaseModel, Field
 from typing import Dict
-from s100.utils.dataset_1 import sample as dataset_1
-from s100.utils.dataset_2 import sample as dataset_2
-from s100.utils.dataset_3 import sample as dataset_3
+from s100.utils.sample.dataset_1 import sample as dataset_1
+from s100.utils.sample.dataset_2 import sample as dataset_2
+from s100.utils.sample.dataset_3 import sample as dataset_3
 
 # from s100.utils.base64_tiff import sample_base64_text
 
