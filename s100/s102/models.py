@@ -1,7 +1,7 @@
 from typing import Optional, Union
 from pydantic import BaseModel, Field
 from typing import Dict
-from s100.utils.sample.ncdfs111 import sample
+from s100.utils.sample.tiff import sample
 
 
 class S102Product(BaseModel):
