@@ -13,3 +13,4 @@ TECH DEBT:
 9. create dedicated firebase
 10. URGENT: (only on s111 and s104) change the algorithm so that we compute the netcdf
 directly, rather than convert it to tiff first. (refer to convert_base64_netcdf_tiff.py)
+11. add version to requirements

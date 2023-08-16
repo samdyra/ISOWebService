@@ -5,12 +5,8 @@ from osgeo import osr
 
 
 def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
-    deg_grid_1 = bio_param['deg_grid_1']
-    deg_grid_2 = bio_param['deg_grid_2']
-    deg_grid_3 = bio_param['deg_grid_3']
-    mag_grid_1 = bio_param['mag_grid_1']
-    mag_grid_2 = bio_param['mag_grid_2']
-    mag_grid_3 = bio_param['mag_grid_3']
+    dataset_deg = bio_param['dataset_deg']
+    dataset_mag = bio_param['dataset_mag']
     maxx: str = bio_param['maxx']
     minx: str = bio_param['minx']
     maxy: str = bio_param['maxy']
@@ -31,25 +27,46 @@ def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
     rows: int = bio_param['rows']
     cols: int = bio_param['cols']
 
+    # Use band 1 from deg to get the shape etc.
+    deg_band_1 = dataset_deg.GetRasterBand(1)
+    deg_grid_1 = deg_band_1.ReadAsArray()
+
+    # group all band in array
+    num_deg_bands = dataset_deg.RasterCount
+    deg_band_arrays = []
+
+    for deg_band_number in range(1, num_deg_bands + 1):
+        deg_band = dataset_deg.GetRasterBand(deg_band_number)
+        deg_band_array = deg_band.ReadAsArray()
+        deg_band_arrays.append(deg_band_array)
+
+    num_mag_bands = dataset_mag.RasterCount
+    mag_band_arrays = []
+
+    for mag_band_number in range(1, num_mag_bands + 1):
+        mag_band = dataset_mag.GetRasterBand(mag_band_number)
+        mag_band_array = mag_band.ReadAsArray()
+        mag_band_arrays.append(mag_band_array)
+
     with File(bio, 'w') as f:
         # initiate dataset structure
         surf = f.create_group('/SurfaceCurrent')
         surf_01 = f.create_group('/SurfaceCurrent/SurfaceCurrent.01')
 
-        surf_group_object_01 = surf_01.create_group(
-            '/SurfaceCurrent/SurfaceCurrent.01/Group_001')
-        grid_01 = surf_group_object_01.create_dataset('values', dtype=[(
-            'surfaceCurrentSpeed', '<f4'), ('surfaceCurrentDirection', '<f4')], shape=deg_grid_1.shape)
+        mag_array = mag_band_arrays
+        deg_array = deg_band_arrays
+        # time_points = ['2022-09-29 16:00:00Z',
+        #                '2022-09-29 20:00:00Z', '2022-09-29 16:00:00Z']
 
-        surf_group_object_02 = surf_01.create_group(
-            '/SurfaceCurrent/SurfaceCurrent.01/Group_002')
-        grid_02 = surf_group_object_02.create_dataset('values', dtype=[(
-            'surfaceCurrentSpeed', '<f4'), ('surfaceCurrentDirection', '<f4')], shape=deg_grid_1.shape)
-
-        surf_group_object_03 = surf_01.create_group(
-            '/SurfaceCurrent/SurfaceCurrent.01/Group_003')
-        grid_03 = surf_group_object_03.create_dataset('values', dtype=[(
-            'surfaceCurrentSpeed', '<f4'), ('surfaceCurrentDirection', '<f4')], shape=deg_grid_1.shape)
+        for idx, (mag_grid, deg_grid) in enumerate(zip(mag_array, deg_array), start=1):
+            group_path = f'/SurfaceCurrent/SurfaceCurrent.01/Group_{idx:03}'
+            surf_group_object = surf_01.create_group(group_path)
+            grid = surf_group_object.create_dataset(
+                'values', dtype=[('surfaceCurrentSpeed', '<f4'), ('surfaceCurrentDirection', '<f4')], shape=deg_grid.shape
+            )
+            grid['surfaceCurrentSpeed'] = mag_grid
+            grid['surfaceCurrentDirection'] = deg_grid
+            # surf_group_object.attrs['timePoint'] = numpy.string_(time_point)
 
         Group_F = f.create_group('Group_F')
         Group_F = f['/Group_F']
@@ -126,20 +143,6 @@ def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
         surf_01.attrs['numPointsLatitudinal'] = rows
         surf_01.attrs['numPointsLongitudinal'] = cols
         surf_01.attrs['startSequence'] = "0,0"
-
-        # initiate Group.nnn attribute
-        surf_group_object_01.attrs['timePoint'] = '2022-09-29 16:00:00Z'
-        surf_group_object_02.attrs['timePoint'] = '2022-09-29 20:00:00Z'
-        surf_group_object_03.attrs['timePoint'] = '2022-09-29 16:00:00Z'
-
-        grid_01[:, 'surfaceCurrentDirection'] = deg_grid_1
-        grid_01[:, 'surfaceCurrentSpeed'] = mag_grid_1
-
-        grid_02[:, 'surfaceCurrentDirection'] = deg_grid_2
-        grid_03[:, 'surfaceCurrentSpeed'] = mag_grid_2
-
-        grid_01[:, 'surfaceCurrentDirection'] = deg_grid_3
-        grid_01[:, 'surfaceCurrentSpeed'] = mag_grid_3
 
         # fill Group_F
         dt_dtype = special_dtype(vlen=str)

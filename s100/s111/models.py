@@ -1,9 +1,7 @@
 from typing import Optional, Union
 from pydantic import BaseModel, Field
 from typing import Dict
-from s100.utils.sample.dataset_1 import sample as dataset_1
-from s100.utils.sample.dataset_2 import sample as dataset_2
-from s100.utils.sample.dataset_3 import sample as dataset_3
+from s100.utils.sample.ncdfs111 import sample as sample_ncdfs111
 
 # from s100.utils.base64_tiff import sample_base64_text
 
@@ -30,9 +28,8 @@ class S111Product(BaseModel):
         'sequencing_rule_type_dt_type': 1,
     })
 
-    dataset_1: str = Field(..., example=dataset_1)
-    dataset_2: str = Field(..., example=dataset_2)
-    dataset_3: str = Field(..., example=dataset_3)
+    # dataset_ncdf: str = Field(..., example=sample_ncdfs111)
+    dataset_ncdf: str = Field(..., example=sample_ncdfs111)
 
     class Config:
         allow_population_by_field_name = True
@@ -55,9 +52,7 @@ class S111Product(BaseModel):
                     'interpolation_type_dt_type': 1,
                     'sequencing_rule_type_dt_type': 1,
                 },
-                'dataset_1': 'base64 text',
-                'dataset_2': 'base64 text',
-                'dataset_3': 'base64 text'
+                'dataset_ncdf': 'base64 text',
             }
         }
 

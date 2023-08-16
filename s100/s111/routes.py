@@ -6,6 +6,7 @@ from s100.constants.metadata_dict import COMMON_POINT_RULE, DATA_CODING_FORMAT, 
 import io
 from osgeo import gdal, osr
 from s100.utils.tiff_hdf5_s111 import tiff_hdf5_s111 as convert_tiff_to_hdf5_s111
+from s100.utils.convert_base64_netcdf_tiff import save_raster_to_temp_file as convert_netcdf_to_temp_tiff
 from uuid import uuid4
 from fastapi.encoders import jsonable_encoder
 from s100.utils.global_helper import generate_random_filename
@@ -21,35 +22,20 @@ def create_s111(request: Request, input: S111Product = Body(...)):
     metadata = input.metadata
     format_data = input.format_data
 
-    temp_tiff_1 = convert_base64_to_temp_tiff(input.dataset_1)
-    temp_tiff_2 = convert_base64_to_temp_tiff(input.dataset_2)
-    temp_tiff_3 = convert_base64_to_temp_tiff(input.dataset_3)
+    temp_tiff_deg = convert_netcdf_to_temp_tiff(
+        input.dataset_ncdf, 'Surface Current Direction')
+    temp_tiff_mag = convert_netcdf_to_temp_tiff(
+        input.dataset_ncdf, 'Surface Current Speed')
 
-    dataset_1 = gdal.Open(temp_tiff_1)
-    dataset_2 = gdal.Open(temp_tiff_2)
-    dataset_3 = gdal.Open(temp_tiff_3)
+    dataset_deg = gdal.Open(temp_tiff_deg)
+    dataset_mag = gdal.Open(temp_tiff_mag)
 
-    deg_band_1 = dataset_1.GetRasterBand(1)
+    deg_band_1 = dataset_deg.GetRasterBand(1)
     deg_grid_1 = deg_band_1.ReadAsArray()
-
-    mag_band_1 = dataset_1.GetRasterBand(2)
-    mag_grid_1 = mag_band_1.ReadAsArray()
-
-    deg_band_2 = dataset_2.GetRasterBand(1)
-    deg_grid_2 = deg_band_2.ReadAsArray()
-
-    mag_band_2 = dataset_2.GetRasterBand(2)
-    mag_grid_2 = mag_band_2.ReadAsArray()
-
-    deg_band_3 = dataset_3.GetRasterBand(1)
-    deg_grid_3 = deg_band_3.ReadAsArray()
-
-    mag_band_3 = dataset_3.GetRasterBand(2)
-    mag_grid_3 = mag_band_3.ReadAsArray()
 
     # calculate grid origin and res.
     # get six coefficients affine transformation
-    ulx, dxx, dxy, uly, dyx, dyy = dataset_1.GetGeoTransform()
+    ulx, dxx, dxy, uly, dyx, dyy = dataset_deg.GetGeoTransform()
 
     if "origin" not in metadata:
         # shift the gdal geotransform corner point to reference the node (pixel is center) rather than cell (pixel is area)
@@ -61,11 +47,11 @@ def create_s111(request: Request, input: S111Product = Body(...)):
     if "horizontalDatumReference" not in metadata or "horizontalDatumValue" not in metadata:
         metadata["horizontalDatumReference"] = "EPSG"
         epsg = osr.SpatialReference(
-            dataset_1.GetProjection()).GetAttrValue("AUTHORITY", 1)
+            dataset_deg.GetProjection()).GetAttrValue("AUTHORITY", 1)
         try:
             metadata["horizontalDatumValue"] = int(epsg)
         except TypeError:
-            if osr.SpatialReference(dataset_1.GetProjection()).GetAttrValue("GEOGCS") == 'WGS 84':
+            if osr.SpatialReference(dataset_deg.GetProjection()).GetAttrValue("GEOGCS") == 'WGS 84':
                 metadata["horizontalDatumValue"] = 4326
 
     file_name = generate_random_filename(metadata['file_name'])
@@ -91,12 +77,8 @@ def create_s111(request: Request, input: S111Product = Body(...)):
     # create hdf5 instance in memory
     bio = io.BytesIO()
     convert_tiff_to_hdf5_s111(bio, {
-        "deg_grid_1": deg_grid_1,
-        "deg_grid_2": deg_grid_2,
-        "deg_grid_3": deg_grid_3,
-        "mag_grid_1": mag_grid_1,
-        "mag_grid_2": mag_grid_2,
-        "mag_grid_3": mag_grid_3,
+        'dataset_deg': dataset_deg,
+        'dataset_mag': dataset_mag,
         'maxx': maxx,
         'minx': minx,
         'maxy': maxy,

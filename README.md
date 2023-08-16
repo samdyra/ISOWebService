@@ -9,6 +9,7 @@ python -m pip install -r requirements.txt
 
 Start the server:
 ```
+source env/bin/activate
 python -m uvicorn main:app --reload
 ```
 
