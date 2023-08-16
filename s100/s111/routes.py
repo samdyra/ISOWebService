@@ -22,9 +22,6 @@ def create_s111(request: Request, input: S111Product = Body(...)):
     metadata = input.metadata
     format_data = input.format_data
 
-    # Surface Current Direction = deg
-    # Surface Current Speed = mag
-
     temp_tiff_deg = convert_netcdf_to_temp_tiff(
         input.dataset_ncdf, 'Surface Current Direction')
     temp_tiff_mag = convert_netcdf_to_temp_tiff(
@@ -36,90 +33,88 @@ def create_s111(request: Request, input: S111Product = Body(...)):
     deg_band_1 = dataset_deg.GetRasterBand(1)
     deg_grid_1 = deg_band_1.ReadAsArray()
 
-    # print(dataset_deg.RasterCount)
-
     # calculate grid origin and res.
     # get six coefficients affine transformation
-    # ulx, dxx, dxy, uly, dyx, dyy = dataset_deg.GetGeoTransform()
+    ulx, dxx, dxy, uly, dyx, dyy = dataset_deg.GetGeoTransform()
 
-    # if "origin" not in metadata:
-    #     # shift the gdal geotransform corner point to reference the node (pixel is center) rather than cell (pixel is area)
-    #     metadata["origin"] = [ulx + dxx/2, uly + dyy/2]
+    if "origin" not in metadata:
+        # shift the gdal geotransform corner point to reference the node (pixel is center) rather than cell (pixel is area)
+        metadata["origin"] = [ulx + dxx/2, uly + dyy/2]
 
-    # if "res" not in metadata:
-    #     metadata["res"] = [dxx, dyy]
+    if "res" not in metadata:
+        metadata["res"] = [dxx, dyy]
 
-    # if "horizontalDatumReference" not in metadata or "horizontalDatumValue" not in metadata:
-    #     metadata["horizontalDatumReference"] = "EPSG"
-    #     epsg = osr.SpatialReference(
-    #         dataset_deg.GetProjection()).GetAttrValue("AUTHORITY", 1)
-    #     try:
-    #         metadata["horizontalDatumValue"] = int(epsg)
-    #     except TypeError:
-    #         if osr.SpatialReference(dataset_deg.GetProjection()).GetAttrValue("GEOGCS") == 'WGS 84':
-    #             metadata["horizontalDatumValue"] = 4326
+    if "horizontalDatumReference" not in metadata or "horizontalDatumValue" not in metadata:
+        metadata["horizontalDatumReference"] = "EPSG"
+        epsg = osr.SpatialReference(
+            dataset_deg.GetProjection()).GetAttrValue("AUTHORITY", 1)
+        try:
+            metadata["horizontalDatumValue"] = int(epsg)
+        except TypeError:
+            if osr.SpatialReference(dataset_deg.GetProjection()).GetAttrValue("GEOGCS") == 'WGS 84':
+                metadata["horizontalDatumValue"] = 4326
 
-    # file_name = generate_random_filename(metadata['file_name'])
-    # res_x, res_y = metadata["res"]
-    # rows, cols = deg_grid_1.shape
-    # corner_x, corner_y = metadata['origin']
+    file_name = generate_random_filename(metadata['file_name'])
+    res_x, res_y = metadata["res"]
+    rows, cols = deg_grid_1.shape
+    corner_x, corner_y = metadata['origin']
 
-    # # S-111 is node based, so distance to far corner is res * (n -1)
-    # opposite_corner_x = corner_x + res_x * (cols - 1)
-    # opposite_corner_y = corner_y + res_y * (rows - 1)
+    # S-111 is node based, so distance to far corner is res * (n -1)
+    opposite_corner_x = corner_x + res_x * (cols - 1)
+    opposite_corner_y = corner_y + res_y * (rows - 1)
 
-    # minx = min((corner_x, opposite_corner_x))
-    # maxx = max((corner_x, opposite_corner_x))
-    # miny = min((corner_y, opposite_corner_y))
-    # maxy = max((corner_y, opposite_corner_y))
+    minx = min((corner_x, opposite_corner_x))
+    maxx = max((corner_x, opposite_corner_x))
+    miny = min((corner_y, opposite_corner_y))
+    maxy = max((corner_y, opposite_corner_y))
 
-    # data_coding_format_dt = enum_dtype(DATA_CODING_FORMAT, basetype='i4')
-    # vertical_datum_dt = enum_dtype(VERTICAL_DATUM, basetype='i4')
-    # common_point_rule_dt = enum_dtype(COMMON_POINT_RULE, basetype='i4')
-    # interpolation_type_dt = enum_dtype(INTERPOLATION_TYPE, basetype='i4')
-    # sequencing_rule_type_dt = enum_dtype(SEQUENCING_RULE_TYPE, basetype='i4')
+    data_coding_format_dt = enum_dtype(DATA_CODING_FORMAT, basetype='i4')
+    vertical_datum_dt = enum_dtype(VERTICAL_DATUM, basetype='i4')
+    common_point_rule_dt = enum_dtype(COMMON_POINT_RULE, basetype='i4')
+    interpolation_type_dt = enum_dtype(INTERPOLATION_TYPE, basetype='i4')
+    sequencing_rule_type_dt = enum_dtype(SEQUENCING_RULE_TYPE, basetype='i4')
 
-    # # create hdf5 instance in memory
-    # bio = io.BytesIO()
-    # convert_tiff_to_hdf5_s111(bio, {
-    #     'dataset_deg': dataset_deg,
-    #     'dataset_mag': dataset_mag,
-    #     'maxx': maxx,
-    #     'minx': minx,
-    #     'maxy': maxy,
-    #     'miny': miny,
-    #     'metadata': metadata,
-    #     'res_x': res_x,
-    #     'res_y': res_y,
-    #     'rows': rows,
-    #     'cols': cols
-    # })
+    # create hdf5 instance in memory
+    bio = io.BytesIO()
+    convert_tiff_to_hdf5_s111(bio, {
+        'dataset_deg': dataset_deg,
+        'dataset_mag': dataset_mag,
+        'maxx': maxx,
+        'minx': minx,
+        'maxy': maxy,
+        'miny': miny,
+        'metadata': metadata,
+        'res_x': res_x,
+        'res_y': res_y,
+        'rows': rows,
+        'cols': cols
+    })
 
-    # hdf5File = bio.getvalue()
+    hdf5File = bio.getvalue()
 
-    # # upload hdf5 file to firebase storage
-    # path = storage.child(f"/s111/hdf5/{file_name}.h5")
-    # path.put(hdf5File)
-    # url = storage.child(f"s111/hdf5/{file_name}.h5").get_url(None)
+    # upload hdf5 file to firebase storage
+    path = storage.child(f"/s111/hdf5/{file_name}.h5")
+    path.put(hdf5File)
+    url = storage.child(f"s111/hdf5/{file_name}.h5").get_url(None)
 
-    # input = jsonable_encoder(input)
-    # input["hdf5Uri"] = url
+    input = jsonable_encoder(input)
+    input["hdf5Uri"] = url
 
-    # # generate id(s)
-    # uid4 = uuid4()
-    # uuid_str = str(uid4)
+    # generate id(s)
+    uid4 = uuid4()
+    uuid_str = str(uid4)
 
-    # # insert new s111 to mongodb
-    # new_s111 = request.app.database["s111"].insert_one({
-    #     "_id": uuid_str,
-    #     "hdf5Uri": input["hdf5Uri"],
-    #     "geojsonUri": "",
-    #     "file_name": metadata["file_name"],
-    #     "user_id": input["user_id"],
-    # })
+    # insert new s111 to mongodb
+    new_s111 = request.app.database["s111"].insert_one({
+        "_id": uuid_str,
+        "hdf5Uri": input["hdf5Uri"],
+        "geojsonUri": "",
+        "file_name": metadata["file_name"],
+        "user_id": input["user_id"],
+    })
 
-    # created_s111 = request.app.database["s111"].find_one(
-    #     {"_id": new_s111.inserted_id}
-    # )
+    created_s111 = request.app.database["s111"].find_one(
+        {"_id": new_s111.inserted_id}
+    )
 
-    # return created_s111
+    return created_s111
