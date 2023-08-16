@@ -5,8 +5,12 @@ from osgeo import osr
 
 
 def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
-    dataset_deg = bio_param['dataset_deg']
-    dataset_mag = bio_param['dataset_mag']
+    deg_grid_1 = bio_param['deg_grid_1']
+    deg_grid_2 = bio_param['deg_grid_2']
+    deg_grid_3 = bio_param['deg_grid_3']
+    mag_grid_1 = bio_param['mag_grid_1']
+    mag_grid_2 = bio_param['mag_grid_2']
+    mag_grid_3 = bio_param['mag_grid_3']
     maxx: str = bio_param['maxx']
     minx: str = bio_param['minx']
     maxy: str = bio_param['maxy']
@@ -27,40 +31,6 @@ def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
     rows: int = bio_param['rows']
     cols: int = bio_param['cols']
 
-    # Use band 1 from deg to get the shape etc.
-    deg_band_1 = dataset_deg.GetRasterBand(1)
-    deg_grid_1 = deg_band_1.ReadAsArray()
-
-    # group all band in array
-    num_deg_bands = dataset_deg.RasterCount
-    deg_band_arrays = []
-
-    for deg_band_number in range(1, num_deg_bands + 1):
-        deg_band = dataset_deg.GetRasterBand(deg_band_number)
-        deg_band_array = deg_band.ReadAsArray()
-        deg_band_arrays.append(deg_band_array)
-
-    num_mag_bands = dataset_mag.RasterCount
-    mag_band_arrays = []
-
-    for mag_band_number in range(1, num_mag_bands + 1):
-        mag_band = dataset_mag.GetRasterBand(mag_band_number)
-        mag_band_array = mag_band.ReadAsArray()
-        mag_band_arrays.append(mag_band_array)
-
-    # time_points = ['2022-09-29 16:00:00Z',
-    #                 '2022-09-29 20:00:00Z', '2022-09-29 16:00:00Z']
-
-    # surf_group_objects = [surf_group_object_01,
-    #                         surf_group_object_02, surf_group_object_03]
-
-    # for i in range(len(surf_group_objects)):
-    #     surf_group_objects[i].attrs['timePoint'] = time_points[i]
-    #     grid = surf_group_objects[i][:]  # Get the corresponding grid
-
-    #     grid[:, 'surfaceCurrentDirection'] = deg_band_arrays[i]
-    #     grid[:, 'surfaceCurrentSpeed'] = mag_band_arrays[i]
-
     with File(bio, 'w') as f:
         # initiate dataset structure
         surf = f.create_group('/SurfaceCurrent')
@@ -80,12 +50,6 @@ def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
             '/SurfaceCurrent/SurfaceCurrent.01/Group_003')
         grid_03 = surf_group_object_03.create_dataset('values', dtype=[(
             'surfaceCurrentSpeed', '<f4'), ('surfaceCurrentDirection', '<f4')], shape=deg_grid_1.shape)
-
-        for i in range(num_deg_bands):
-            surf_group_object_03 = surf_01.create_group(
-                '/SurfaceCurrent/SurfaceCurrent.01/Group_003')
-            grid_03 = surf_group_object_03.create_dataset('values', dtype=[(
-                'surfaceCurrentSpeed', '<f4'), ('surfaceCurrentDirection', '<f4')], shape=deg_grid_1.shape)
 
         Group_F = f.create_group('Group_F')
         Group_F = f['/Group_F']
@@ -174,10 +138,8 @@ def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
         grid_02[:, 'surfaceCurrentDirection'] = deg_grid_2
         grid_03[:, 'surfaceCurrentSpeed'] = mag_grid_2
 
-        grid_03[:, 'surfaceCurrentDirection'] = deg_grid_3
+        grid_01[:, 'surfaceCurrentDirection'] = deg_grid_3
         grid_01[:, 'surfaceCurrentSpeed'] = mag_grid_3
-
-        # Assuming you have arrays containing data for direction and speed
 
         # fill Group_F
         dt_dtype = special_dtype(vlen=str)

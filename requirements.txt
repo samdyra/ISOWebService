@@ -1,6 +1,6 @@
 fastapi
 pydantic
-pymongo
+pymongo[srv]
 python-dotenv
 pytest
 gunicorn
@@ -8,5 +8,7 @@ uvicorn
 pyrebase
 h5py
 geojson
+gdal
 xarray
 rioxarray
+netcdf4
