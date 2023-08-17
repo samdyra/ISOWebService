@@ -1,7 +1,10 @@
 from typing import Optional, Union
 from pydantic import BaseModel, Field
 from typing import Dict
-from s100.utils.sample.dataset_1 import sample as dataset_1
+from s100.utils.sample.selatSundaS104 import sample as sample_ncdfs104
+
+
+# from s100.utils.base64_tiff import sample_base64_text
 
 
 class S104Product(BaseModel):
@@ -16,6 +19,7 @@ class S104Product(BaseModel):
         'issueTime': '1237',
         'issueDate': '20230409',
         'metadata': '102ID00_ITBS100PROJECT.xml'
+
     })
     format_data: Dict[str, int] = Field(..., example={
         'data_coding_format_dt_type': 2,
@@ -24,8 +28,7 @@ class S104Product(BaseModel):
         'interpolation_type_dt_type': 1,
         'sequencing_rule_type_dt_type': 1,
     })
-    netcdf: str = Field(..., example=dataset_1)
-    netcdf_main_band: str = Field(..., example="wl_pred")
+    dataset_ncdf: str = Field(..., example=sample_ncdfs104)
 
     class Config:
         allow_population_by_field_name = True
@@ -48,9 +51,7 @@ class S104Product(BaseModel):
                     'interpolation_type_dt_type': 1,
                     'sequencing_rule_type_dt_type': 1,
                 },
-                'netcdf': 'base64 text',
-                'netcdf_main_band': 'wl_pred'
-
+                'dataset_ncdf': 'base64 text',
             }
         }
 
