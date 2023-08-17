@@ -58,6 +58,7 @@ def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
         # time_points = ['2022-09-29 16:00:00Z',
         #                '2022-09-29 20:00:00Z', '2022-09-29 16:00:00Z']
 
+        # T0D0: Add time_point to the group name
         for idx, (mag_grid, deg_grid) in enumerate(zip(mag_array, deg_array), start=1):
             group_path = f'/SurfaceCurrent/SurfaceCurrent.01/Group_{idx:03}'
             surf_group_object = surf_01.create_group(group_path)

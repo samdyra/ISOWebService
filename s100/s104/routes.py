@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Body, Request, status
 from s100.s104.models import S104Product, S104ProductResponse
 from h5py import enum_dtype
-from s100.utils.base64_tiff import convert_base64_to_temp_tiff
 from s100.constants.metadata_dict import COMMON_POINT_RULE, DATA_CODING_FORMAT, INTERPOLATION_TYPE, SEQUENCING_RULE_TYPE, VERTICAL_DATUM
 import io
 from osgeo import gdal, osr
@@ -22,20 +21,17 @@ def create_s104(request: Request, input: S104Product = Body(...)):
     metadata = input.metadata
     format_data = input.format_data
 
-    temp_tiff_deg = convert_netcdf_to_temp_tiff(
-        input.dataset_ncdf, 'Surface Current Direction')
-    temp_tiff_mag = convert_netcdf_to_temp_tiff(
-        input.dataset_ncdf, 'Surface Current Speed')
+    temp_tiff = convert_netcdf_to_temp_tiff(
+        input.dataset_ncdf, 'wl_pred')
 
-    dataset_deg = gdal.Open(temp_tiff_deg)
-    dataset_mag = gdal.Open(temp_tiff_mag)
+    dataset = gdal.Open(temp_tiff)
 
-    deg_band_1 = dataset_deg.GetRasterBand(1)
-    deg_grid_1 = deg_band_1.ReadAsArray()
+    band_1 = dataset.GetRasterBand(1)
+    grid_1 = band_1.ReadAsArray()
 
     # calculate grid origin and res.
     # get six coefficients affine transformation
-    ulx, dxx, dxy, uly, dyx, dyy = dataset_deg.GetGeoTransform()
+    ulx, dxx, dxy, uly, dyx, dyy = dataset.GetGeoTransform()
 
     if "origin" not in metadata:
         # shift the gdal geotransform corner point to reference the node (pixel is center) rather than cell (pixel is area)
@@ -47,16 +43,16 @@ def create_s104(request: Request, input: S104Product = Body(...)):
     if "horizontalDatumReference" not in metadata or "horizontalDatumValue" not in metadata:
         metadata["horizontalDatumReference"] = "EPSG"
         epsg = osr.SpatialReference(
-            dataset_deg.GetProjection()).GetAttrValue("AUTHORITY", 1)
+            dataset.GetProjection()).GetAttrValue("AUTHORITY", 1)
         try:
             metadata["horizontalDatumValue"] = int(epsg)
         except TypeError:
-            if osr.SpatialReference(dataset_deg.GetProjection()).GetAttrValue("GEOGCS") == 'WGS 84':
+            if osr.SpatialReference(dataset.GetProjection()).GetAttrValue("GEOGCS") == 'WGS 84':
                 metadata["horizontalDatumValue"] = 4326
 
     file_name = generate_random_filename(metadata['file_name'])
     res_x, res_y = metadata["res"]
-    rows, cols = deg_grid_1.shape
+    rows, cols = grid_1.shape
     corner_x, corner_y = metadata['origin']
 
     # S-111 is node based, so distance to far corner is res * (n -1)
@@ -77,8 +73,7 @@ def create_s104(request: Request, input: S104Product = Body(...)):
     # create hdf5 instance in memory
     bio = io.BytesIO()
     convert_tiff_to_hdf5_s104(bio, {
-        'dataset_deg': dataset_deg,
-        'dataset_mag': dataset_mag,
+        'dataset': dataset,
         'maxx': maxx,
         'minx': minx,
         'maxy': maxy,

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Body, Request, status
 from s100.s111.models import S111Product, S111ProductResponse
 from h5py import enum_dtype
-from s100.utils.base64_tiff import convert_base64_to_temp_tiff
 from s100.constants.metadata_dict import COMMON_POINT_RULE, DATA_CODING_FORMAT, INTERPOLATION_TYPE, SEQUENCING_RULE_TYPE, VERTICAL_DATUM
 import io
 from osgeo import gdal, osr
