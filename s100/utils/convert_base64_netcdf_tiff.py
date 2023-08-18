@@ -16,7 +16,7 @@ def convert_base64_to_temp_ncdf(base64_string):
     return temp_file_path
 
 
-def save_raster_to_temp_file(nc_file_base64, path):
+def save_raster_to_temp_file(nc_file_base64, path, is_return_time=False):
     ncdf_file_path = convert_base64_to_temp_ncdf(nc_file_base64)
 
     # Open the NetCDF
@@ -46,8 +46,8 @@ def save_raster_to_temp_file(nc_file_base64, path):
         temp_filepath = temp_file.name
         pr.rio.to_raster(temp_filepath)
 
-        # Now you can work with the temporary file (temp_filepath) as needed
-        print("Raster saved to temporary file:", temp_filepath)
+    if is_return_time:
+        return temp_filepath, ncfile.time.values
 
     return temp_filepath
 

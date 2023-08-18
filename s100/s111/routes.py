@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Body, Request, status
 from s100.s111.models import S111Product, S111ProductResponse
 from h5py import enum_dtype
-from s100.utils.base64_tiff import convert_base64_to_temp_tiff
 from s100.constants.metadata_dict import COMMON_POINT_RULE, DATA_CODING_FORMAT, INTERPOLATION_TYPE, SEQUENCING_RULE_TYPE, VERTICAL_DATUM
 import io
 from osgeo import gdal, osr
@@ -22,8 +21,8 @@ def create_s111(request: Request, input: S111Product = Body(...)):
     metadata = input.metadata
     format_data = input.format_data
 
-    temp_tiff_deg = convert_netcdf_to_temp_tiff(
-        input.dataset_ncdf, 'Surface Current Direction')
+    temp_tiff_deg, time = convert_netcdf_to_temp_tiff(
+        input.dataset_ncdf, 'Surface Current Direction', True)
     temp_tiff_mag = convert_netcdf_to_temp_tiff(
         input.dataset_ncdf, 'Surface Current Speed')
 
@@ -79,6 +78,7 @@ def create_s111(request: Request, input: S111Product = Body(...)):
     convert_tiff_to_hdf5_s111(bio, {
         'dataset_deg': dataset_deg,
         'dataset_mag': dataset_mag,
+        'time': time,
         'maxx': maxx,
         'minx': minx,
         'maxy': maxy,

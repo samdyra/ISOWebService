@@ -21,13 +21,13 @@ sample = "{base64_data}"
 '''
 
     # Write the Python file
-    with open("bathysmall.py", "w") as output_file:
+    with open("./sample/SelatSundaS104.py", "w") as output_file:
         output_file.write(python_file_content)
 
     return base64_data
 
 
-# base64_string = create_base64_from_tiff("./bathysmall.tif")
+# base64_string = create_base64_from_tiff("./sample/SelatSundaS104.nc")
 # print(base64_string)
 
 
