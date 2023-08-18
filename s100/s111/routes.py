@@ -21,8 +21,8 @@ def create_s111(request: Request, input: S111Product = Body(...)):
     metadata = input.metadata
     format_data = input.format_data
 
-    temp_tiff_deg = convert_netcdf_to_temp_tiff(
-        input.dataset_ncdf, 'Surface Current Direction')
+    temp_tiff_deg, time = convert_netcdf_to_temp_tiff(
+        input.dataset_ncdf, 'Surface Current Direction', True)
     temp_tiff_mag = convert_netcdf_to_temp_tiff(
         input.dataset_ncdf, 'Surface Current Speed')
 
@@ -78,6 +78,7 @@ def create_s111(request: Request, input: S111Product = Body(...)):
     convert_tiff_to_hdf5_s111(bio, {
         'dataset_deg': dataset_deg,
         'dataset_mag': dataset_mag,
+        'time': time,
         'maxx': maxx,
         'minx': minx,
         'maxy': maxy,

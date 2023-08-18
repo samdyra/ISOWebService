@@ -2,11 +2,13 @@ from h5py import File, special_dtype
 import numpy
 from typing import Dict, Union
 from osgeo import osr
+from s100.utils.matlab_utc import convert_to_iso8601_with_offset as convert_to_utc
 
 
 def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
     dataset_deg = bio_param['dataset_deg']
     dataset_mag = bio_param['dataset_mag']
+    time = bio_param['time']
     maxx: str = bio_param['maxx']
     minx: str = bio_param['minx']
     maxy: str = bio_param['maxy']
@@ -55,11 +57,8 @@ def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
 
         mag_array = mag_band_arrays
         deg_array = deg_band_arrays
-        # time_points = ['2022-09-29 16:00:00Z',
-        #                '2022-09-29 20:00:00Z', '2022-09-29 16:00:00Z']
 
-        # T0D0: Add time_point to the group name
-        for idx, (mag_grid, deg_grid) in enumerate(zip(mag_array, deg_array), start=1):
+        for idx, (mag_grid, deg_grid, single_time) in enumerate(zip(mag_array, deg_array, time), start=1):
             group_path = f'/SurfaceCurrent/SurfaceCurrent.01/Group_{idx:03}'
             surf_group_object = surf_01.create_group(group_path)
             grid = surf_group_object.create_dataset(
@@ -67,7 +66,7 @@ def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
             )
             grid['surfaceCurrentSpeed'] = mag_grid
             grid['surfaceCurrentDirection'] = deg_grid
-            # surf_group_object.attrs['timePoint'] = numpy.string_(time_point)
+            surf_group_object.attrs['timePoint'] = convert_to_utc(single_time)
 
         Group_F = f.create_group('Group_F')
         Group_F = f['/Group_F']
