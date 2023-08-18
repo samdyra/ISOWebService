@@ -6,6 +6,7 @@ from osgeo import osr
 
 def tiff_hdf5_s104(bio, bio_param: Dict[str, Union[str, int]]):
     dataset = bio_param['dataset']
+    time = bio_param['time']
     maxx: str = bio_param['maxx']
     minx: str = bio_param['minx']
     maxy: str = bio_param['maxy']
@@ -49,14 +50,14 @@ def tiff_hdf5_s104(bio, bio_param: Dict[str, Union[str, int]]):
 
         # T0D0: There is indication that the resulting group values are inversed. check it again with all s111 data.
         # T0D0: Add time_point to the group name
-        for idx, (value_grid,) in enumerate(zip(grid_array), start=1):
+        for idx, (value_grid, time) in enumerate(zip(grid_array, time), start=1):
             group_path = f'/SurfaceCurrent/SurfaceCurrent.01/Group_{idx:03}'
             surf_group_object = surf_01.create_group(group_path)
             grid = surf_group_object.create_dataset(
                 'values', dtype=[('surfaceCurrentSpeed', '<f4')], shape=value_grid.shape
             )
             grid['surfaceCurrentSpeed'] = value_grid
-            # surf_group_object.attrs['timePoint'] = numpy.string_(time_point)
+            surf_group_object.attrs['timePoint'] = time
 
         Group_F = f.create_group('Group_F')
         Group_F = f['/Group_F']

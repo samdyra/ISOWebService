@@ -21,8 +21,8 @@ def create_s104(request: Request, input: S104Product = Body(...)):
     metadata = input.metadata
     format_data = input.format_data
 
-    temp_tiff = convert_netcdf_to_temp_tiff(
-        input.dataset_ncdf, 'wl_pred')
+    temp_tiff, time = convert_netcdf_to_temp_tiff(
+        input.dataset_ncdf, 'wl_pred', True)
 
     dataset = gdal.Open(temp_tiff)
 
@@ -74,6 +74,7 @@ def create_s104(request: Request, input: S104Product = Body(...)):
     bio = io.BytesIO()
     convert_tiff_to_hdf5_s104(bio, {
         'dataset': dataset,
+        'time': time,
         'maxx': maxx,
         'minx': minx,
         'maxy': maxy,
