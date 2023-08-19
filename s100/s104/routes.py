@@ -1,7 +1,5 @@
 from fastapi import APIRouter, Body, Request, status
 from s100.s104.models import S104Product, S104ProductResponse
-from h5py import enum_dtype
-from s100.constants.metadata_dict import COMMON_POINT_RULE, DATA_CODING_FORMAT, INTERPOLATION_TYPE, SEQUENCING_RULE_TYPE, VERTICAL_DATUM
 import io
 from osgeo import gdal, osr
 from s100.utils.tiff_hdf5_s104 import tiff_hdf5_s104 as convert_tiff_to_hdf5_s104
@@ -32,23 +30,8 @@ def create_s104(request: Request, input: S104Product = Body(...)):
     # calculate grid origin and res.
     # get six coefficients affine transformation
     ulx, dxx, dxy, uly, dyx, dyy = dataset.GetGeoTransform()
-
-    if "origin" not in metadata:
-        # shift the gdal geotransform corner point to reference the node (pixel is center) rather than cell (pixel is area)
-        metadata["origin"] = [ulx + dxx/2, uly + dyy/2]
-
-    if "res" not in metadata:
-        metadata["res"] = [dxx, dyy]
-
-    if "horizontalDatumReference" not in metadata or "horizontalDatumValue" not in metadata:
-        metadata["horizontalDatumReference"] = "EPSG"
-        epsg = osr.SpatialReference(
-            dataset.GetProjection()).GetAttrValue("AUTHORITY", 1)
-        try:
-            metadata["horizontalDatumValue"] = int(epsg)
-        except TypeError:
-            if osr.SpatialReference(dataset.GetProjection()).GetAttrValue("GEOGCS") == 'WGS 84':
-                metadata["horizontalDatumValue"] = 4326
+    metadata["origin"] = [ulx + dxx/2, uly + dyy/2]
+    metadata["res"] = [dxx, dyy]
 
     file_name = generate_random_filename(metadata['file_name'])
     res_x, res_y = metadata["res"]
@@ -64,12 +47,6 @@ def create_s104(request: Request, input: S104Product = Body(...)):
     miny = min((corner_y, opposite_corner_y))
     maxy = max((corner_y, opposite_corner_y))
 
-    data_coding_format_dt = enum_dtype(DATA_CODING_FORMAT, basetype='i4')
-    vertical_datum_dt = enum_dtype(VERTICAL_DATUM, basetype='i4')
-    common_point_rule_dt = enum_dtype(COMMON_POINT_RULE, basetype='i4')
-    interpolation_type_dt = enum_dtype(INTERPOLATION_TYPE, basetype='i4')
-    sequencing_rule_type_dt = enum_dtype(SEQUENCING_RULE_TYPE, basetype='i4')
-
     # create hdf5 instance in memory
     bio = io.BytesIO()
     convert_tiff_to_hdf5_s104(bio, {
@@ -80,6 +57,7 @@ def create_s104(request: Request, input: S104Product = Body(...)):
         'maxy': maxy,
         'miny': miny,
         'metadata': metadata,
+
         'res_x': res_x,
         'res_y': res_y,
         'rows': rows,
