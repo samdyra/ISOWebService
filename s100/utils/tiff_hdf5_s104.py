@@ -5,7 +5,7 @@ from typing import Dict, Union
 from osgeo import osr
 from s100.utils.matlab_utc import convert_to_iso8601_with_offset as convert_to_utc
 from s100.constants.message import MESSAGE
-from s100.constants.metadata_dict import COMMON_POINT_RULE, DATA_CODING_FORMAT, INTERPOLATION_TYPE, SEQUENCING_RULE_TYPE, VERTICAL_DATUM
+from s100.constants.metadata_dict import INTERPOLATION_TYPE, SEQUENCING_RULE_TYPE, DATA_DYNAMICITY
 
 
 def tiff_hdf5_s104(bio, bio_param: Dict[str, Union[str, int]]):
@@ -18,8 +18,11 @@ def tiff_hdf5_s104(bio, bio_param: Dict[str, Union[str, int]]):
     metadata: Dict[str, Union[str, bool, int]] = bio_param['metadata']
     interpolation_type_dt = enum_dtype(INTERPOLATION_TYPE, basetype='i4')
     sequencing_rule_type_dt = enum_dtype(SEQUENCING_RULE_TYPE, basetype='i4')
+    data_dynamicity_dt = enum_dtype(DATA_DYNAMICITY, basetype='i4')
     sequencing_rule_type_dt_type: int = bio_param['sequencing_rule_type_dt_type']
     interpolation_type_dt_type: int = bio_param['interpolation_type_dt_type']
+    data_dynamicity_dt_type: int = bio_param['data_dynamicity_dt_type']
+
     res_x: str = bio_param['res_x']
     res_y: str = bio_param['res_y']
     rows: int = bio_param['rows']
@@ -31,12 +34,31 @@ def tiff_hdf5_s104(bio, bio_param: Dict[str, Union[str, int]]):
     # group all band in array
     num_bands = dataset.RasterCount
     band_arrays = []
-    # timezz = convert_to_utc(time[13])
 
     for band_number in range(1, num_bands + 1):
         band = dataset.GetRasterBand(band_number)
         band_array = band.ReadAsArray()
         band_arrays.append(band_array)
+
+    max_values_array = []
+    min_values_array = []
+
+    for band_array in band_arrays:
+        max_value = numpy.nanmax(band_array)
+        min_value = numpy.nanmin(band_array)
+        max_values_array.append(max_value)
+        min_values_array.append(min_value)
+
+    max_grid_value = numpy.max(max_values_array)
+    min_grid_value = numpy.min(min_values_array)
+
+    max_time_value = numpy.nanmax(time)
+    min_time_value = numpy.nanmin(time)
+    time_delta = time[2] - time[1]
+    time_delta_in_seconds = round(time_delta * 60 * 60)
+
+    max_time_value_utc = convert_to_utc(max_time_value)
+    min_time_value_utc = convert_to_utc(min_time_value)
 
     with File(bio, 'w') as f:
         # initiate root attrs.
@@ -67,17 +89,16 @@ def tiff_hdf5_s104(bio, bio_param: Dict[str, Union[str, int]]):
 
         # initiate WaterLevel attribute
         WaterLevel = f.create_group('/WaterLevel')
-        WaterLevel.create_dataset('axisNames', data=axes)
 
         source_epsg = int(metadata.get("horizontalDatumValue", 4326))
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(source_epsg)
         if srs.IsProjected():
-
             axes = ["Easting", "Northing"]
         else:
             axes = ["Longitude", "Latitude"]
 
+        WaterLevel.create_dataset('axisNames', data=axes)
         WaterLevel.attrs.create('dataCodingFormat', data=2)
         WaterLevel.attrs['dimension'] = 2
         WaterLevel.attrs.create('commonPointRule', data=4)
@@ -91,9 +112,8 @@ def tiff_hdf5_s104(bio, bio_param: Dict[str, Union[str, int]]):
         WaterLevel.attrs['methodCurrentsProduct'] = metadata.get(
             'methodCurrentsProduct', MESSAGE['err_message'])
 
-        # TODO: these attributes is on the array data, calculate it first
-        WaterLevel.attrs['minDatasetHeight'] = MESSAGE['err_message']
-        WaterLevel.attrs['maxDatasetHeight'] = MESSAGE['err_message']
+        WaterLevel.attrs['minDatasetHeight'] = max_grid_value or MESSAGE['err_message']
+        WaterLevel.attrs['maxDatasetHeight'] = min_grid_value or MESSAGE['err_message']
 
         WaterLevel.attrs.create(
             'sequencingRule.type', data=sequencing_rule_type_dt_type, dtype=sequencing_rule_type_dt)
@@ -104,29 +124,28 @@ def tiff_hdf5_s104(bio, bio_param: Dict[str, Union[str, int]]):
 
         # initiate WaterLevel.nn attribute
         WaterLevel_01 = f.create_group('/WaterLevel/WaterLevel.01')
-
         WaterLevel_01.attrs['eastBoundLongitude'] = maxx
         WaterLevel_01.attrs['westBoundLongitude'] = minx
         WaterLevel_01.attrs['southBoundLatitude'] = miny
         WaterLevel_01.attrs['northBoundLatitude'] = maxy
-        WaterLevel_01.attrs['numberOfTimes'] = 3
-        WaterLevel_01.attrs['timeRecordInterval'] = 3600
-        WaterLevel_01.attrs['dateTimeOfFirstRecord'] = '2022-09-29 16:00:00Z'
-        WaterLevel_01.attrs['dateTimeOfLastRecord'] = '2022-09-30 00:00:00Z'
-
+        WaterLevel_01.attrs['numberOfTimes'] = num_bands
+        WaterLevel_01.attrs['timeRecordInterval'] = time_delta_in_seconds
+        WaterLevel_01.attrs['dateTimeOfFirstRecord'] = min_time_value_utc
+        WaterLevel_01.attrs['dateTimeOfLastRecord'] = max_time_value_utc
+        WaterLevel_01.attrs['numGRP'] = num_bands
+        WaterLevel_01.attrs.create(
+            'dataDynamicity', data=data_dynamicity_dt_type, dtype=data_dynamicity_dt)
         WaterLevel_01.attrs['gridSpacingLatitudinal'] = abs(res_y)
         WaterLevel_01.attrs['gridSpacingLongitudinal'] = abs(res_x)
         WaterLevel_01.attrs['gridOriginLatitude'] = miny
         WaterLevel_01.attrs['gridOriginLongitude'] = minx
-
-        WaterLevel_01.attrs['numGRP'] = 3
         WaterLevel_01.attrs['numPointsLatitudinal'] = rows
         WaterLevel_01.attrs['numPointsLongitudinal'] = cols
         WaterLevel_01.attrs['startSequence'] = "0,0"
 
         # initiate Group.nnn attribute
         grid_array = band_arrays
-        # T0D0: There is indication that the resulting group values are inversed. check it again with all s111 data.
+        # TODO: There is indication that the resulting group values are inversed. check it again with all s111 data.
         for idx, (value_grid, single_time) in enumerate(zip(grid_array, time), start=1):
             group_path = f'/WaterLevel/WaterLevel.01/Group_{idx:03}'
             surf_group_object = WaterLevel_01.create_group(group_path)

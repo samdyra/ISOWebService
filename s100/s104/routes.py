@@ -57,11 +57,13 @@ def create_s104(request: Request, input: S104Product = Body(...)):
         'maxy': maxy,
         'miny': miny,
         'metadata': metadata,
-
         'res_x': res_x,
         'res_y': res_y,
         'rows': rows,
-        'cols': cols
+        'cols': cols,
+        'sequencing_rule_type_dt_type': format_data['sequencing_rule_type_dt_type'],
+        'interpolation_type_dt_type': format_data['interpolation_type_dt_type'],
+        'data_dynamicity_dt_type': format_data['data_dynamicity_dt_type'],
     })
 
     hdf5File = bio.getvalue()

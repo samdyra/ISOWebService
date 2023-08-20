@@ -30,6 +30,7 @@ class S104Product(BaseModel):
     format_data: Dict[str, int] = Field(..., example={
         'interpolation_type_dt_type': 1,
         'sequencing_rule_type_dt_type': 1,
+        'data_dynamicity_dt_type': 1,
     })
     dataset_ncdf: str = Field(..., example=sample_ncdfs104)
 
