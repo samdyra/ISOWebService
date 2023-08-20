@@ -19,8 +19,9 @@ def create_s104(request: Request, input: S104Product = Body(...)):
     metadata = input.metadata
     format_data = input.format_data
 
+    water_level_band_name = input.water_level_band_name
     temp_tiff, time = convert_netcdf_to_temp_tiff(
-        input.dataset_ncdf, 'wl_pred', True)
+        input.dataset_ncdf, water_level_band_name, True)
 
     dataset = gdal.Open(temp_tiff)
 

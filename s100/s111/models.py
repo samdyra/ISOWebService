@@ -8,28 +8,32 @@ from s100.utils.sample.ncdfs111 import sample as sample_ncdfs111
 
 class S111Product(BaseModel):
     user_id: str = Field(..., example="60a7b1b9d6b9a4a7f0a3b3a0")
-    metadata: Dict[str, Union[str, bool, int]] = Field(..., example={
+    metadata: Dict[str, Union[str, bool, int, float]] = Field(..., example={
         'file_name': 'TESTING S111',
         'geographicIdentifier': 'Selat Alas',
         'epoch': 'G1762',
         'extent_type_code': True,
-        'horizontalDatumReference': 'EPSG',
         'horizontalDatumValue': 4326,
         'issueTime': '1237',
         'issueDate': '20230409',
-        'metadata': '102ID00_ITBS100PROJECT.xml'
-
+        'metadata': '102ID00_ITBS100PROJECT.xml',
+        'surfaceCurrentDepth': 10,
+        'verticalCS': 6499,
+        'horizontalPositionUncertainty': 0.1,
+        'verticalUncertainty': -1.0,
+        'timeUncertainty': -1.0,
+        'methodCurrentsProduct': 'TESTING S111',
     })
     format_data: Dict[str, int] = Field(..., example={
-        'data_coding_format_dt_type': 2,
-        'vertical_datum_dt_type': 3,
         'common_point_rule_dt_type': 1,
         'interpolation_type_dt_type': 1,
         'sequencing_rule_type_dt_type': 1,
+        'data_dynamicity_dt_type': 1,
     })
-
-    # dataset_ncdf: str = Field(..., example=sample_ncdfs111)
     dataset_ncdf: str = Field(..., example=sample_ncdfs111)
+    current_speed_band_name: str = Field(..., example="Surface Current Speed")
+    current_direction_band_name: str = Field(...,
+                                             example="Surface Current Direction")
 
     class Config:
         allow_population_by_field_name = True

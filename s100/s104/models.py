@@ -33,6 +33,7 @@ class S104Product(BaseModel):
         'data_dynamicity_dt_type': 1,
     })
     dataset_ncdf: str = Field(..., example=sample_ncdfs104)
+    water_level_band_name: str = Field(..., example="wl_pred")
 
 
 class S104ProductResponse(BaseModel):
