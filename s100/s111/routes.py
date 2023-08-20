@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Body, Request, status
+from fastapi import APIRouter, Body, Request, status, HTTPException, Response
+from typing import List
 from s100.s111.models import S111Product, S111ProductResponse
 import io
 from osgeo import gdal
@@ -100,3 +101,27 @@ def create_s111(request: Request, input: S111Product = Body(...)):
     )
 
     return created_s111
+
+
+@router.get("/{user_id}", response_description="Get S111 user data", response_model=List[S111ProductResponse])
+def list_user_s111_data(user_id: str, request: Request):
+    if (s111_data := list(request.app.database["s111"].find({"user_id": user_id}, limit=100))) is not None:
+        return s111_data
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"user with ID {user_id} dont have any data")
+
+
+@router.delete("/{_id}", response_description="Delete A S111 data")
+def delete_s111_data(_id: str, request: Request, response: Response):
+    # TODO: delete hdf5 and geojson file from firebase storage by Frontend
+
+    delete_result = request.app.database["s111"].delete_one({"_id": _id})
+
+    if delete_result.deleted_count == 1:
+        response.status_code = status.HTTP_204_NO_CONTENT
+        response.message = "S111 data deleted"
+        return response
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"S111 data with ID {_id} not found")
