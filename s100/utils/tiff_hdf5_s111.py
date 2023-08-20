@@ -89,16 +89,18 @@ def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
             group_path = f'/SurfaceCurrent/SurfaceCurrent.01/Group_{idx:03}'
             surf_group_object = surf_01.create_group(group_path)
 
-            # Round mag_grid and deg_grid arrays to 2 decimal places
             mag_grid_rounded = numpy.round(mag_grid, decimals=2)
             deg_grid_rounded = numpy.round(deg_grid, decimals=2)
+
+            mag_grid_no_nan = numpy.nan_to_num(mag_grid_rounded, nan=0)
+            deg_grid_no_nan = numpy.nan_to_num(deg_grid_rounded, nan=0)
 
             grid = surf_group_object.create_dataset(
                 'values', dtype=[('surfaceCurrentSpeed', '<f4'), ('surfaceCurrentDirection', '<f4')], shape=deg_grid.shape,
                 compression='gzip', compression_opts=9, chunks=chunk_size
             )
-            grid['surfaceCurrentSpeed'] = mag_grid_rounded
-            grid['surfaceCurrentDirection'] = deg_grid_rounded
+            grid['surfaceCurrentSpeed'] = mag_grid_no_nan
+            grid['surfaceCurrentDirection'] = deg_grid_no_nan
             surf_group_object.attrs['timePoint'] = convert_to_utc(single_time)
 
         Group_F = f.create_group('Group_F')
