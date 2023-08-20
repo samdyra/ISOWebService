@@ -75,6 +75,8 @@ def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
     max_time_value_utc = convert_to_utc(max_time_value)
     min_time_value_utc = convert_to_utc(min_time_value)
 
+    chunk_size = (100, 100)  # Adjust based on your data size
+
     with File(bio, 'w') as f:
         # initiate dataset structure
         surf = f.create_group('/SurfaceCurrent')
@@ -86,11 +88,17 @@ def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
         for idx, (mag_grid, deg_grid, single_time) in enumerate(zip(mag_array, deg_array, time), start=1):
             group_path = f'/SurfaceCurrent/SurfaceCurrent.01/Group_{idx:03}'
             surf_group_object = surf_01.create_group(group_path)
+
+            # Round mag_grid and deg_grid arrays to 2 decimal places
+            mag_grid_rounded = numpy.round(mag_grid, decimals=2)
+            deg_grid_rounded = numpy.round(deg_grid, decimals=2)
+
             grid = surf_group_object.create_dataset(
-                'values', dtype=[('surfaceCurrentSpeed', '<f4'), ('surfaceCurrentDirection', '<f4')], shape=deg_grid.shape
+                'values', dtype=[('surfaceCurrentSpeed', '<f4'), ('surfaceCurrentDirection', '<f4')], shape=deg_grid.shape,
+                compression='gzip', compression_opts=9, chunks=chunk_size
             )
-            grid['surfaceCurrentSpeed'] = mag_grid
-            grid['surfaceCurrentDirection'] = deg_grid
+            grid['surfaceCurrentSpeed'] = mag_grid_rounded
+            grid['surfaceCurrentDirection'] = deg_grid_rounded
             surf_group_object.attrs['timePoint'] = convert_to_utc(single_time)
 
         Group_F = f.create_group('Group_F')
