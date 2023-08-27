@@ -9,6 +9,7 @@ from uuid import uuid4
 from fastapi.encoders import jsonable_encoder
 from s100.utils.global_helper import generate_random_filename
 from config.firebase import storage
+from s100.utils.tiff_geojson_104 import convert_tiff_to_geojson
 
 
 router = APIRouter()
@@ -49,6 +50,11 @@ def create_s104(request: Request, input: S104Product = Body(...)):
     miny = min((corner_y, opposite_corner_y))
     maxy = max((corner_y, opposite_corner_y))
 
+    upper_left_corner = (corner_x, corner_y)
+    upper_right_corner = (opposite_corner_x, corner_y)
+    bottom_left_corner = (corner_x, opposite_corner_y)
+    bottom_right_corner = (opposite_corner_x, opposite_corner_y)
+
     # create hdf5 instance in memory
     bio = io.BytesIO()
     convert_tiff_to_hdf5_s104(bio, {
@@ -68,6 +74,9 @@ def create_s104(request: Request, input: S104Product = Body(...)):
         'data_dynamicity_dt_type': format_data['data_dynamicity_dt_type'],
     })
 
+    geojson_result = convert_tiff_to_geojson(
+        upper_left_corner, upper_right_corner, bottom_right_corner, bottom_left_corner)
+
     hdf5File = bio.getvalue()
 
     # upload hdf5 file to firebase storage
@@ -75,8 +84,15 @@ def create_s104(request: Request, input: S104Product = Body(...)):
     path.put(hdf5File)
     url = storage.child(f"s104/hdf5/{file_name}.h5").get_url(None)
 
+    # upload geojson file to firebase storage
+    path_geojson = storage.child(f"/s104/geojson/{file_name}.geojson")
+    path_geojson.put(geojson_result)
+    url_geojson = storage.child(
+        f"s104/geojson/{file_name}.geojson").get_url(None)
+
     input = jsonable_encoder(input)
     input["hdf5Uri"] = url
+    input["geojsonUri"] = url_geojson
 
     # generate id(s)
     uid4 = uuid4()
@@ -86,7 +102,7 @@ def create_s104(request: Request, input: S104Product = Body(...)):
     new_s104 = request.app.database["s104"].insert_one({
         "_id": uuid_str,
         "hdf5Uri": input["hdf5Uri"],
-        "geojsonUri": "",
+        "geojsonUri": input["geojsonUri"],
         "file_name": metadata["file_name"],
         "user_id": input["user_id"],
     })
