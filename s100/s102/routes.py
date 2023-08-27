@@ -4,18 +4,19 @@ from fastapi.encoders import jsonable_encoder
 from s100.s102.models import S102ProductResponse, S102Product
 from config.firebase import storage
 from h5py import enum_dtype
-from s100.utils.base64_tiff import convert_base64_to_temp_tiff 
+from s100.utils.base64_tiff import convert_base64_to_temp_tiff
 from s100.constants.metadata_dict import COMMON_POINT_RULE, DATA_CODING_FORMAT, INTERPOLATION_TYPE, SEQUENCING_RULE_TYPE, VERTICAL_DATUM
 import io
 from osgeo import gdal, osr
 import numpy
 from s100.utils.tiff_hdf5_s102 import tiff_hdf5_s102 as convert_tiff_to_hdf5_s102
-from s100.utils.tiff_geojson import convert_tiff_to_geojson
+from s100.utils.tiff_geojson_102 import convert_tiff_to_geojson
 from s100.utils.global_helper import generate_random_filename
 from uuid import uuid4
 
 
 router = APIRouter()
+
 
 @router.post("/", response_description="Create a new s102 hdf5 file", status_code=status.HTTP_201_CREATED, response_model=S102ProductResponse)
 def create_s012(request: Request, input: S102Product = Body(...)):
@@ -24,7 +25,7 @@ def create_s012(request: Request, input: S102Product = Body(...)):
     metadata = input.metadata
     format_data = input.format_data
 
-    data_coding_format_dt_type =  format_data['data_coding_format_dt_type']
+    data_coding_format_dt_type = format_data['data_coding_format_dt_type']
     vertical_datum_dt_type = format_data['vertical_datum_dt_type']
     common_point_rule_dt_type = format_data['common_point_rule_dt_type']
     interpolation_type_dt_type = format_data['interpolation_type_dt_type']
@@ -112,7 +113,8 @@ def create_s012(request: Request, input: S102Product = Body(...)):
     })
 
     # convert tiff to geojson
-    geojson_result = convert_tiff_to_geojson(depth_grid_init, corner_x, corner_y, res_x, res_y)
+    geojson_result = convert_tiff_to_geojson(
+        depth_grid_init, corner_x, corner_y, res_x, res_y)
 
     hdf5File = bio.getvalue()
 
@@ -124,13 +126,14 @@ def create_s012(request: Request, input: S102Product = Body(...)):
     # upload geojson file to firebase storage
     path_geojson = storage.child(f"/s102/geojson/{file_name}.geojson")
     path_geojson.put(geojson_result)
-    url_geojson = storage.child(f"s102/geojson/{file_name}.geojson").get_url(None)
+    url_geojson = storage.child(
+        f"s102/geojson/{file_name}.geojson").get_url(None)
 
     # use url from firebase storage as hdf5Uri in response
     input = jsonable_encoder(input)
     input["hdf5Uri"] = url
     input["geojsonUri"] = url_geojson
-    
+
     uid4 = uuid4()
     uuid_str = str(uid4)
 
@@ -151,12 +154,15 @@ def create_s012(request: Request, input: S102Product = Body(...)):
 
     return created_s102
 
+
 @router.get("/{user_id}", response_description="Get S102 user data", response_model=List[S102ProductResponse])
 def list_user_s102_data(user_id: str, request: Request):
     if (s102_data := list(request.app.database["s102"].find({"user_id": user_id}, limit=100))) is not None:
         return s102_data
-    
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"user with ID {user_id} dont have any data")
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"user with ID {user_id} dont have any data")
+
 
 @router.delete("/{_id}", response_description="Delete A S102 data")
 def delete_s102_data(_id: str, request: Request, response: Response):
@@ -169,5 +175,5 @@ def delete_s102_data(_id: str, request: Request, response: Response):
         response.message = "S102 data deleted"
         return response
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"S102 data with ID {_id} not found")
-    
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"S102 data with ID {_id} not found")
