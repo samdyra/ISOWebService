@@ -149,10 +149,15 @@ def tiff_hdf5_s104(bio, bio_param: Dict[str, Union[str, int]]):
         for idx, (value_grid, single_time) in enumerate(zip(grid_array, time), start=1):
             group_path = f'/WaterLevel/WaterLevel.01/Group_{idx:03}'
             surf_group_object = WaterLevel_01.create_group(group_path)
+
+            grid_rounded = numpy.round(value_grid, decimals=2)
+            grid_no_nan = numpy.nan_to_num(grid_rounded, nan=-9999.00)
+
             grid = surf_group_object.create_dataset(
-                'values', dtype=[('surfaceCurrentSpeed', '<f4')], shape=value_grid.shape
+                'values', dtype=[('surfaceCurrentSpeed', '<f4')], shape=value_grid.shape,
+                compression='gzip', compression_opts=4
             )
-            grid['surfaceCurrentSpeed'] = value_grid
+            grid['surfaceCurrentSpeed'] = grid_no_nan
             surf_group_object.attrs['timePoint'] = convert_to_utc(single_time)
 
         # fill Group_F
