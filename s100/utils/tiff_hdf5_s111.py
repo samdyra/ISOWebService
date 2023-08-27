@@ -75,8 +75,6 @@ def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
     max_time_value_utc = convert_to_utc(max_time_value)
     min_time_value_utc = convert_to_utc(min_time_value)
 
-    chunk_size = (100, 100)  # Adjust based on your data size
-
     with File(bio, 'w') as f:
         # initiate dataset structure
         surf = f.create_group('/SurfaceCurrent')
@@ -92,12 +90,12 @@ def tiff_hdf5_s111(bio, bio_param: Dict[str, Union[str, int]]):
             mag_grid_rounded = numpy.round(mag_grid, decimals=2)
             deg_grid_rounded = numpy.round(deg_grid, decimals=2)
 
-            mag_grid_no_nan = numpy.nan_to_num(mag_grid_rounded, nan=0)
-            deg_grid_no_nan = numpy.nan_to_num(deg_grid_rounded, nan=0)
+            mag_grid_no_nan = numpy.nan_to_num(mag_grid_rounded, nan=-9999.00)
+            deg_grid_no_nan = numpy.nan_to_num(deg_grid_rounded, nan=-9999.0)
 
             grid = surf_group_object.create_dataset(
                 'values', dtype=[('surfaceCurrentSpeed', '<f4'), ('surfaceCurrentDirection', '<f4')], shape=deg_grid.shape,
-                compression='gzip', compression_opts=9, chunks=chunk_size
+                compression='gzip', compression_opts=9
             )
             grid['surfaceCurrentSpeed'] = mag_grid_no_nan
             grid['surfaceCurrentDirection'] = deg_grid_no_nan
