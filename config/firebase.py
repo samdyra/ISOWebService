@@ -1,13 +1,17 @@
 import pyrebase
+from dotenv import dotenv_values
+
+config = dotenv_values(".env")
+
 
 config = {
-  "apiKey": "AIzaSyCIKis22qb5fDnkRABgfzm8zq2fi7yaI6E",
-  "authDomain": "watermelongisapp.firebaseapp.com",
-  "projectId": "watermelongisapp",
-  "storageBucket": "watermelongisapp.appspot.com",
-  "messagingSenderId": "429822291246",
-  "appId": "1:429822291246:web:b5578743c899a029139ebf",
-  "databaseURL": "https://watermelongisapp-default-rtdb.firebaseio.com/"
+    "apiKey": config["FIREBASE_API_KEY"],
+    "authDomain": config["FIREBASE_AUTH_DOMAIN"],
+    "projectId": config["FIREBASE_PROJECT_ID"],
+    "storageBucket": config["FIREBASE_STORAGE_BUCKET"],
+    "messagingSenderId": config["FIREBASE_MESSAGING_SENDER_ID"],
+    "appId": config["FIREBASE_APP_ID"],
+    "databaseURL": config["FIREBASE_DATABASE_URL"]
 }
 
 firebase = pyrebase.initialize_app(config)
