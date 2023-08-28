@@ -4,6 +4,7 @@ from bookstore.routes import router as book_router
 from s100.s102.routes import router as s102_router
 from s100.s111.routes import router as s111_router
 from s100.s104.routes import router as s104_router
+import uvicorn
 
 
 from dotenv import dotenv_values
@@ -40,3 +41,6 @@ app.include_router(book_router, tags=["books"], prefix="/book")
 app.include_router(s102_router, tags=["s102"], prefix="/s102")
 app.include_router(s104_router, tags=["s104"], prefix="/s104")
 app.include_router(s111_router, tags=["s111"], prefix="/s111")
+
+if __name__ == "__main__":
+    uvicorn.run(app, port=8000, host="0.0.0.0")

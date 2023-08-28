@@ -13,6 +13,12 @@ source env/bin/activate
 python -m uvicorn main:app --reload
 ```
 
+from docker
+```
+docker build -t isoappservice .   
+docker run -p 8000:8000 isoappservice 
+```
+
 When the application starts, navigate to `http://localhost:8000/docs` and try out the `book` endpoints.
 
 ## Running the tests
