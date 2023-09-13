@@ -14,7 +14,8 @@ config = dotenv_values(".env")
 
 origins = [
     "http://localhost",
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "https://watermelon-gis-app-42qk-samdyra.vercel.app"
 ]
 
 app = FastAPI()
@@ -43,4 +44,4 @@ app.include_router(s104_router, tags=["s104"], prefix="/s104")
 app.include_router(s111_router, tags=["s111"], prefix="/s111")
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=8000, host="0.0.0.0")
+    uvicorn.run(app, host="0.0.0.0", port=80)
